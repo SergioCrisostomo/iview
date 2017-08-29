@@ -22,6 +22,7 @@ import Form from './components/form';
 import Icon from './components/icon';
 import Input from './components/input';
 import InputNumber from './components/input-number';
+import InfiniteScroll from './components/infinite-scroll';
 import LoadingBar from './components/loading-bar';
 import Menu from './components/menu';
 import Message from './components/message';
@@ -45,8 +46,8 @@ import Tooltip from './components/tooltip';
 import Transfer from './components/transfer';
 import Tree from './components/tree';
 import Upload from './components/upload';
-import { Row, Col } from './components/grid';
-import { Select, Option, OptionGroup } from './components/select';
+import {Row, Col} from './components/grid';
+import {Select, Option, OptionGroup} from './components/select';
 import locale from './locale';
 
 const iview = {
@@ -83,6 +84,7 @@ const iview = {
     Input,
     iInput: Input,
     InputNumber,
+    InfiniteScroll,
     LoadingBar,
     Menu,
     iMenu: Menu,
@@ -110,7 +112,7 @@ const iview = {
     Spin,
     Step: Steps.Step,
     Steps,
-    // Switch,
+	// Switch,
     iSwitch: Switch,
     iTable: Table,
     Table,
@@ -126,11 +128,11 @@ const iview = {
     Upload
 };
 
-const install = function (Vue, opts = {}) {
+const install = function(Vue, opts = {}) {
     locale.use(opts.locale);
     locale.i18n(opts.i18n);
 
-    Object.keys(iview).forEach((key) => {
+    Object.keys(iview).forEach(key => {
         Vue.component(key, iview[key]);
     });
 
@@ -145,4 +147,4 @@ if (typeof window !== 'undefined' && window.Vue) {
     install(window.Vue);
 }
 
-module.exports = Object.assign(iview, {install});   // eslint-disable-line no-undef
+module.exports = Object.assign(iview, {install}); // eslint-disable-line no-undef

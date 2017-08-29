@@ -43,6 +43,7 @@
     "async-validator": "^1.7.1",
     "core-js": "^2.4.1",
     "deepmerge": "^1.5.0",
+    "lodash.throttle": "^4.1.1",
     "popper.js": "^0.6.4",
     "tinycolor2": "^1.4.1"
   },
