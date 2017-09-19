@@ -1,5 +1,5 @@
 <template>
-    <div :class="classes" ref="cell">
+    <div :class="classes" ref="cell" :style="cellStyle">
         <template v-if="renderType === 'index'">{{naturalIndex + 1}}</template>
         <template v-if="renderType === 'selection'">
             <Checkbox :value="checked" @click.native.stop="handleClick" @on-change="toggleSelect" :disabled="disabled"></Checkbox>
@@ -39,6 +39,10 @@
             fixed: {
                 type: [Boolean, String],
                 default: false
+            },
+            cellStyle: {
+                type: Object,
+                default: null
             }
         },
         data () {

@@ -13,10 +13,11 @@
                     @mouseleave.native.stop="handleMouseOut(row._index)"
                     @click.native="clickCurrentRow(row._index)"
                     @dblclick.native.stop="dblclickCurrentRow(row._index)">
-                    <td v-for="column in columns" :class="alignCls(column, row)">
+                    <td v-for="(column, i) in columns" :class="alignCls(column, row)">
                         <Cell
                             :fixed="fixed"
                             :prefix-cls="prefixCls"
+                            :cellStyle="{height: getOriginalTdHeight(index, i)}"
                             :row="row"
                             :key="column._columnKey"
                             :column="column"
@@ -43,6 +44,8 @@
     import Cell from './cell.vue';
     import Expand from './expand.js';
     import Mixin from './mixin';
+    import { oneOf, getStyle, deepCopy, getScrollBarSize } from '../../utils/assist';
+
 
     export default {
         name: 'TableBody',
@@ -55,6 +58,7 @@
             data: Array,    // rebuildData
             objData: Object,
             columnsWidth: Object,
+            mainTbody: {type: Boolean, default: false}, // to know if this is original table and not clone
             fixed: {
                 type: [Boolean, String],
                 default: false
@@ -72,6 +76,10 @@
                     }
                 }
                 return render;
+            },
+            mainTableRows(){
+                const tbody = !this.mainTbody && this.$parent.$refs.tbody.$el;
+                return tbody ? tbody.querySelectorAll('tbody tr') : null;
             }
         },
         methods: {
@@ -95,6 +103,18 @@
             },
             dblclickCurrentRow (_index) {
                 this.$parent.dblclickCurrentRow(_index);
+            },
+            getRowHeight(row, index){
+                if (!this.mainTableRows) return null;
+                const height = getStyle(this.mainTableRows[index], height);
+                return this.mainTableRows[index].offsetHeight - 1 + 'px';
+            },
+            getOriginalTdHeight(index, i){
+                if (!this.mainTableRows) return null;
+                const row  = this.mainTableRows[index];
+                const tds = row && row.querySelectorAll('td');
+                const tableCell = tds && tds[i].querySelector('.ivu-table-cell')
+                return tableCell && tableCell.offsetHeight + 'px';
             }
         }
     };

@@ -15,6 +15,7 @@
                 v-show="!((!!localeNoDataText && (!data || data.length === 0)) || (!!localeNoFilteredDataText && (!rebuildData || rebuildData.length === 0)))">
                 <table-body
                     ref="tbody"
+                    :main-tbody="true"
                     :prefix-cls="prefixCls"
                     :styleObject="tableStyle"
                     :columns="cloneColumns"
@@ -96,6 +97,7 @@
     import Csv from '../../utils/csv';
     import ExportCsv from './export-csv';
     import Locale from '../../mixins/locale';
+    import elementResizeDetectorMaker from 'element-resize-detector';
 
     const prefixCls = 'ivu-table';
 
@@ -185,7 +187,8 @@
                 bodyRealHeight: 0,
                 scrollBarWidth: getScrollBarSize(),
                 currentContext: this.context,
-                cloneData: deepCopy(this.data)    // when Cell has a button to delete row data, clickCurrentRow will throw an error, so clone a data
+                cloneData: deepCopy(this.data),    // when Cell has a button to delete row data, clickCurrentRow will throw an error, so clone a data
+                observer: null
             };
         },
         computed: {
@@ -337,29 +340,33 @@
             },
             handleResize () {
                 this.$nextTick(() => {
-                    const allWidth = !this.columns.some(cell => !cell.width);    // each column set a width
-                    if (allWidth) {
-                        this.tableWidth = this.columns.map(cell => cell.width).reduce((a, b) => a + b, 0);
+                    const allColumnsHaveFixedWidth = !this.columns.some(cell => !cell.width);    // each column set a width
+                    const minimumFixedWidth = this.columns.map(cell => cell.width).reduce((a, b) => a + b, 0);
+                    if (allColumnsHaveFixedWidth) {
+                        this.tableWidth = minimumFixedWidth;
                     } else {
-                        this.tableWidth = parseInt(getStyle(this.$el, 'width')) - 1;
+                        const tableRenderedWidth = parseInt(getStyle(this.$el, 'width'));
+                        if (!this.width && minimumFixedWidth > tableRenderedWidth){
+                            this.tableWidth = minimumFixedWidth;
+                        } else if (this.width) {
+                            this.tableWidth = this.width;
+                        } else {
+                            this.tableWidth = 0;
+                        }
                     }
                     this.columnsWidth = {};
                     this.$nextTick(() => {
                         let columnsWidth = {};
                         let autoWidthIndex = -1;
-                        if (allWidth) autoWidthIndex = this.cloneColumns.findIndex(cell => !cell.width);//todo 这行可能有问题
+                        if (allColumnsHaveFixedWidth) autoWidthIndex = this.cloneColumns.findIndex(cell => !cell.width);//todo 这行可能有问题
 
                         if (this.data.length) {
                             const $td = this.$refs.tbody.$el.querySelectorAll('tbody tr')[0].querySelectorAll('td');
                             for (let i = 0; i < $td.length; i++) {    // can not use forEach in Firefox
                                 const column = this.cloneColumns[i];
 
-                                let width = parseInt(getStyle($td[i], 'width'));
-                                if (i === autoWidthIndex) {
-                                    width = parseInt(getStyle($td[i], 'width')) - 1;
-                                }
-                                if (column.width) width = column.width;
-
+                                if (!column.width) continue;
+                                const width = column.width;
                                 this.cloneColumns[i]._width = width;
 
                                 columnsWidth[column._index] = {
@@ -724,6 +731,9 @@
             this.rebuildData = this.makeDataWithSortAndFilter();
         },
         mounted () {
+            this.observer = elementResizeDetectorMaker();
+            this.observer.listenTo(this.$el, this.handleResize);
+
             this.handleResize();
             this.fixedHeader();
             this.$nextTick(() => this.ready = true);
@@ -737,6 +747,7 @@
             });
         },
         beforeDestroy () {
+            this.observer.removeListener(this.$el, this.handleResize);
 //            window.removeEventListener('resize', this.handleResize, false);
             off(window, 'resize', this.handleResize);
         },
