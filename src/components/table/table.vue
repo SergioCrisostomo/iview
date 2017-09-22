@@ -351,13 +351,13 @@
                         if (allWidth) autoWidthIndex = this.cloneColumns.findIndex(cell => !cell.width);//todo 这行可能有问题
 
                         if (this.data.length) {
-                            const $td = this.$refs.tbody.$el.querySelectorAll('tbody tr')[0].querySelectorAll('td');
-                            for (let i = 0; i < $td.length; i++) {    // can not use forEach in Firefox
+                            const $tds = this.$refs.tbody.$el.querySelector('tbody').querySelector('tr').children;
+                            for (let i = 0; i < $tds.length; i++) {    // can not use forEach in Firefox
                                 const column = this.cloneColumns[i];
 
-                                let width = parseInt(getStyle($td[i], 'width'));
+                                let width = parseInt(getStyle($tds[i], 'width'));
                                 if (i === autoWidthIndex) {
-                                    width = parseInt(getStyle($td[i], 'width')) - 1;
+                                    width = parseInt(getStyle($tds[i], 'width')) - 1;
                                 }
                                 if (column.width) width = column.width;
 
