@@ -96,7 +96,7 @@
 
 <template>
     <div style="width: 400px;">
-        <Tree :data="data4" :render="renderContent"></Tree>
+        <Tree :data="data4" :render="renderContent" ref="Tree"></Tree>
     </div>
 </template>
 <script>
@@ -143,7 +143,7 @@
                     type: 'ghost',
                     size: 'small',
                 }
-            }
+            };
         },
         methods: {
             renderContent (h, { data, node }) {
@@ -169,7 +169,7 @@
                                 marginRight: '8px'
                             },
                             on: {
-                                click: () => { this.append(node, data) }
+                                click: () => { this.append(node, data); }
                             }
                         }),
                         h('Button', {
@@ -177,7 +177,7 @@
                                 icon: 'ios-minus-empty'
                             }),
                             on: {
-                                click: () => { this.remove(node, data) }
+                                click: () => { this.remove(node, data); }
                             }
                         })
                     ])
@@ -190,10 +190,11 @@
                 }]);
             },
             remove (node, data) {
-                const parent = node.parent;
-                console.log(node);
-                console.log(data);
+                const Tree = this.$refs.Tree;
+                const parentKey = Tree.flatState.find(el => el == node).parent;
+                const parent = Tree.flatState.find(el => el.nodeKey == parentKey).node;
+                parent.children = parent.children.filter(el => el.nodeKey !== node.nodeKey);
             }
         }
-    }
+    };
 </script>
