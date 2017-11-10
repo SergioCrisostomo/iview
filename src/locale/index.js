@@ -38,7 +38,8 @@ export const t = function(path, options) {
 };
 
 export const use = function(l) {
-    lang = l || lang;
+    if (typeof l === 'undefined') return lang.i.locale; // return current language code
+    else lang = l || lang;
 };
 
 export const i18n = function(fn) {

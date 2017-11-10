@@ -1,4 +1,4 @@
-export default {
+const languagePackage = {
     i: {
         locale: 'uk-UA',
         select: {
@@ -97,3 +97,10 @@ export default {
         }
     }
 };
+
+if (typeof window !== 'undefined'){
+    if (typeof window.iviewLanguagePackages === 'undefined') window.iviewLanguagePackages = {};
+    window.iviewLanguagePackages[languagePackage.i.locale] = languagePackage;
+}
+
+export default languagePackage;

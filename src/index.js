@@ -163,9 +163,10 @@ const API = {
 };
 
 API.lang = (code) => {
-    const langObject = window['iview/locale'].default;
-    if (code === langObject.i.locale) locale.use(langObject);
-    else console.log(`The ${code} language pack is not loaded.`); // eslint-disable-line no-console
+    const langObject = window.iviewLanguagePackages[code];
+    if (typeof code === 'undefined') return locale.use(); // return current language code
+    else if (code === langObject.i.locale) locale.use(langObject); // change current language code
+    else console.log(`The ${code} language package is not loaded.`); // eslint-disable-line no-console
 };
 
 module.exports.default = module.exports = API;   // eslint-disable-line no-undef
