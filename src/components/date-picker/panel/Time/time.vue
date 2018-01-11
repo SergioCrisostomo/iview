@@ -25,13 +25,13 @@
     </div>
 </template>
 <script>
-    import TimeSpinner from '../base/time-spinner.vue';
-    import Confirm from '../base/confirm.vue';
+    import TimeSpinner from '../../base/time-spinner.vue';
+    import Confirm from '../../base/confirm.vue';
 
-    import Mixin from './mixin';
-    import Locale from '../../../mixins/locale';
+    import Mixin from '../panel-mixin';
+    import Locale from '../../../../mixins/locale';
 
-    import { initTimeDate } from '../util';
+    import { initTimeDate } from '../../util';
 
     const prefixCls = 'ivu-picker-panel';
     const timePrefixCls = 'ivu-time-picker';

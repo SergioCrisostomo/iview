@@ -18,7 +18,7 @@
                 <date-panel-label
                     :date-panel-label="datePanelLabel"
                     :current-view="currentView"
-                    :date-prefix-cls="datePrefixCls"/>
+                    :date-prefix-cls="datePrefixCls"></date-panel-label>
                 <span
                     :class="iconBtnCls('next', '-double')"
                     @click="changeYear(+1)"><Icon type="ios-arrow-right"></Icon></span>
@@ -28,8 +28,8 @@
                     v-show="currentView === 'date'"><Icon type="ios-arrow-right"></Icon></span>
             </div>
             <div :class="[prefixCls + '-content']">
-                <date-table
-                    v-show="currentView === 'date'"
+                <component
+                    :is="pickerTable"
                     :year="year"
                     :month="month"
                     :date="date"
@@ -37,32 +37,8 @@
                     :selection-mode="selectionMode"
                     :disabled-date="disabledDate"
                     @on-pick="handleDatePick"
-                    @on-pick-click="handlePickClick"></date-table>
-                <year-table
-                    ref="yearTable"
-                    v-show="currentView === 'year'"
-                    :year="year"
-                    :date="date"
-                    :selection-mode="selectionMode"
-                    :disabled-date="disabledDate"
-                    @on-pick="handleYearPick"
-                    @on-pick-click="handlePickClick"></year-table>
-                <month-table
-                    ref="monthTable"
-                    v-show="currentView === 'month'"
-                    :month="month"
-                    :date="date"
-                    :selection-mode="selectionMode"
-                    :disabled-date="disabledDate"
-                    @on-pick="handleMonthPick"
-                    @on-pick-click="handlePickClick"></month-table>
-                <time-picker
-                    ref="timePicker"
-                    show-date
-                    :format="format"
-                    v-show="currentView === 'time'"
-                    @on-pick="handleTimePick"
-                    @on-pick-click="handlePickClick"></time-picker>
+                    @on-pick-click="handlePickClick"
+                ></component>
             </div>
             <Confirm
                 v-if="confirm"
@@ -75,58 +51,31 @@
     </div>
 </template>
 <script>
-    import Icon from '../../icon/icon.vue';
-    import DateTable from '../base/date-table.vue';
-    import YearTable from '../base/year-table.vue';
-    import MonthTable from '../base/month-table.vue';
-    import TimePicker from './time.vue';
-    import Confirm from '../base/confirm.vue';
+    import Icon from '../../../icon/icon.vue';
+    import DateTable from '../../base/date-table.vue';
+    import YearTable from '../../base/year-table.vue';
+    import MonthTable from '../../base/month-table.vue';
+    import TimePicker from '../Time/time.vue';
+    import Confirm from '../../base/confirm.vue';
     import datePanelLabel from './date-panel-label.vue';
 
-    import Mixin from './mixin';
-    import Locale from '../../../mixins/locale';
+    import Mixin from '../panel-mixin';
+    import DateMixin from './date-panel-mixin';
+    import Locale from '../../../../mixins/locale';
 
-    import { oneOf } from '../../../utils/assist';
-    import { initTimeDate, siblingMonth, formatDateLabels } from '../util';
+    import { initTimeDate, siblingMonth, formatDateLabels } from '../../util';
 
     const prefixCls = 'ivu-picker-panel';
     const datePrefixCls = 'ivu-date-picker';
 
     export default {
         name: 'DatePickerPanel',
-        mixins: [ Mixin, Locale ],
+        mixins: [ Mixin, Locale, DateMixin ],
         components: { Icon, DateTable, YearTable, MonthTable, TimePicker, Confirm, datePanelLabel },
         props: {
-            confirm: {
-                type: Boolean,
-                default: false
-            },
-            showTime: {
-                type: Boolean,
-                default: false
-            },
-            format: {
-                type: String,
-                default: 'yyyy-MM-dd'
-            },
             value: {
                 type: Date,
                 default: () => initTimeDate()
-            },
-            selectionMode: {
-                type: String,
-                validator (value) {
-                    return oneOf(value, ['year', 'month', 'date']);
-                },
-                default: 'date'
-            },
-            shortcuts: {
-                type: Array,
-                default: () => []
-            },
-            disabledDate: {
-                type: Function,
-                default: () => false
             }
         },
         data () {
@@ -148,6 +97,9 @@
                         [`${prefixCls}-with-sidebar`]: this.shortcuts.length
                     }
                 ];
+            },
+            pickerTable(){
+              return this.currentView.match(/^time/) ? 'time-picker' : `${this.currentView}-table`;
             },
             datePanelLabel () {
                 if (!this.year) return null; // not ready yet

@@ -38,10 +38,12 @@
                         :selectionMode="selectionMode"
                         :steps="steps"
                         :format="format"
-                        :value="intervalValue"
-
-                        v-bind="ownPickerProps"
-
+                        :value="pickerDate"
+                        v-bind="picker"
+                        :disabledHours="disabledHours"
+                        :disabledMinutes="disabledMinutes"
+                        :disabledSeconds="disabledSeconds"
+                        :hideDisabledOptions="hideDisabledOptions"
                         @on-pick="onPick"
                         @on-pick-clear="handleClear"
                         @on-pick-success="onPickSuccess"
@@ -60,7 +62,7 @@
     import clickoutside from '../../directives/clickoutside';
     import TransferDom from '../../directives/transfer-dom';
     import { oneOf } from '../../utils/assist';
-    import { formatDate, parseDate } from './util';
+    import { formatDate, parseDate, initTimeDate } from './util';
     import Emitter from '../../mixins/emitter';
 
     const prefixCls = 'ivu-date-picker';
@@ -230,30 +232,10 @@
             steps: {
                 type: Array,
                 default: () => []
-            },
-            value: {}
-        },
-        data(){
-            const isRange = this.type.includes('range');
-            return {
-                prefixCls: prefixCls,
-                showClose: false,
-                visible: false,
-                picker: {showTime: true, ...this.options},
-                intervalValue: isRange ? [null, null] : [],
-                disableClickOutSide: false,    // fixed when click a date,trigger clickoutside to close picker
-                disableCloseUnderTransfer: false,  // transfer 模式下，点击Drop也会触发关闭
-                currentValue: this.value
             }
         },
+
         computed: {
-              publicValue(){
-                const isRange = this.type.includes('range');
-                return isRange ? this.internalValue : this.internalValue[0];
-            },
-
-
-
             opened () {
                 return this.open === null ? this.visible : this.open;
             },
@@ -264,17 +246,20 @@
                 return icon;
             },
             transition () {
-                const bottomPlaced = this.placement.match(/^bottom/);
-                return bottomPlaced ? 'slide-up' : 'slide-down';
+                if (this.placement === 'bottom-start' || this.placement === 'bottom' || this.placement === 'bottom-end') {
+                    return 'slide-up';
+                } else {
+                    return 'slide-down';
+                }
             },
             selectionMode() {
-                if (this.type === 'year') {
-                    return 'year';
-                } else if (this.type === 'month') {
+                if (this.type === 'month') {
                     return 'month';
-                } else {
-                    return 'date';
+                } else if (this.type === 'year') {
+                    return 'year';
                 }
+
+                return 'date';
             },
             visualValue: {
                 get () {
@@ -304,6 +289,16 @@
                     if (this.picker) this.picker.value = value;
                 }
             },
+            pickerDate(){
+                const isRange = this.type.includes('range');
+                if (isRange){
+                    const isArray = Array.isArray(this.internalValue);
+                    return (isArray ? this.internalValue : [this.internalValue]).map(date => date || initTimeDate());
+                } else {
+                    return this.internalValue || initTimeDate();
+                }
+
+            },
             isConfirm(){
                 return this.confirm || this.type === 'datetime' || this.type === 'datetimerange';
             }
@@ -319,7 +314,7 @@
                     return false;
                 }
                 if (this.open !== null) return;
-
+//                if (!this.disableClickOutSide) this.visible = false;
                 this.visible = false;
                 this.disableClickOutSide = false;
             },
@@ -331,15 +326,88 @@
                 this.visible = false;
             },
             handleInputChange (event) {
-                const oldValue = this.internalValue;
-                const newValue = event.target.value;
-                const visualValue = 'Something';
+                const oldValue = this.visualValue;
+                const value = event.target.value;
 
+                let correctValue = '';
+                let correctDate = '';
+                const type = this.type;
+                const format = this.format || DEFAULT_FORMATS[type];
 
-                this.visualValue = visualValue;
-                this.internalValue = newValue;
+                if (type === 'daterange' || type === 'timerange' || type === 'datetimerange') {
+                    const parser = (
+                        TYPE_VALUE_RESOLVER_MAP[type] ||
+                        TYPE_VALUE_RESOLVER_MAP['default']
+                    ).parser;
 
-                if (newValue !== oldValue) this.emitChange(this.  publicValue);
+                    const formatter = (
+                        TYPE_VALUE_RESOLVER_MAP[type] ||
+                        TYPE_VALUE_RESOLVER_MAP['default']
+                    ).formatter;
+
+                    const parsedValue = parser(value, format);
+
+                    if (parsedValue[0] instanceof Date && parsedValue[1] instanceof Date) {
+                        if (parsedValue[0].getTime() > parsedValue[1].getTime()) {
+                            correctValue = oldValue;
+                        } else {
+                            correctValue = formatter(parsedValue, format);
+                        }
+                        // todo 判断disabledDate
+                    } else {
+                        correctValue = oldValue;
+                    }
+
+                    correctDate = parser(correctValue, format);
+                } else if (type === 'time') {
+                    const parsedDate = parseDate(value, format);
+
+                    if (parsedDate instanceof Date) {
+                        if (this.disabledHours.length || this.disabledMinutes.length || this.disabledSeconds.length) {
+                            const hours = parsedDate.getHours();
+                            const minutes = parsedDate.getMinutes();
+                            const seconds = parsedDate.getSeconds();
+
+                            if ((this.disabledHours.length && this.disabledHours.indexOf(hours) > -1) ||
+                                (this.disabledMinutes.length && this.disabledMinutes.indexOf(minutes) > -1) ||
+                                (this.disabledSeconds.length && this.disabledSeconds.indexOf(seconds) > -1)) {
+                                correctValue = oldValue;
+                            } else {
+                                correctValue = formatDate(parsedDate, format);
+                            }
+                        } else {
+                            correctValue = formatDate(parsedDate, format);
+                        }
+                    } else {
+                        correctValue = oldValue;
+                    }
+
+                    correctDate = parseDate(correctValue, format);
+                } else {
+                    const parsedDate = parseDate(value, format);
+
+                    if (parsedDate instanceof Date) {
+                        const options = this.options || false;
+                        if (options && options.disabledDate && typeof options.disabledDate === 'function' && options.disabledDate(new Date(parsedDate))) {
+                            correctValue = oldValue;
+                        } else {
+                            correctValue = formatDate(parsedDate, format);
+                        }
+                    } else if (!parsedDate) {
+                        correctValue = '';
+                    } else {
+                        correctValue = oldValue;
+                    }
+
+                    correctDate = parseDate(correctValue, format);
+                }
+
+                this.visualValue = correctValue;
+                event.target.value = correctValue;
+                this.internalValue = correctDate;
+                this.currentValue = correctDate;
+
+                if (correctValue !== oldValue) this.emitChange(correctDate);
             },
             handleInputMouseenter () {
                 if (this.readonly || this.disabled) return;
@@ -359,11 +427,19 @@
             },
             handleClear () {
                 this.visible = false;
-                this.internalValue = this.internalValue.map(() => null);
-                this.visualValue = '';
+                this.internalValue = this.type.includes('range') ? [null, null] : '';
+                this.currentValue = this.type.includes('range') ? [null, null] : '';
                 this.$emit('on-clear');
                 this.dispatch('FormItem', 'on-form-change', '');
                 this.emitChange('');
+            },
+            showPicker () {
+                if (this.internalValue instanceof Date) {
+                    this.picker.date = new Date(this.internalValue);
+                } else {
+                    this.picker.value = this.internalValue;
+                }
+                this.picker.resetView && this.picker.resetView();
             },
             emitChange (date) {
                 const newDate = this.formattingDate(date);
@@ -388,16 +464,14 @@
                 return newDate;
             },
             onPick(date, visible = false) {
-/*
+
                 // create new Date objects so Vue's reactive trigger gets called
                 date = Array.isArray(date) ? date.map(d => new Date(d)) : new Date(date);
 
+                if (!this.isConfirm) this.visible = visible;
                 this.currentValue = date;
                 this.picker.value = date;
                 this.picker.resetView && this.picker.resetView();
-                */
-
-                if (!this.isConfirm) this.visible = visible;
                 this.emitChange(date);
             },
             onPickSuccess(){
@@ -409,13 +483,25 @@
         watch: {
             visible (val) {
                 if (val) {
-                    this.$refs.drop.update(); // ????????
+                    this.showPicker();
+                    this.$refs.drop.update();
+                    if (this.open === null) this.$emit('on-open-change', true);
                 } else {
+                    if (this.picker) this.picker.resetView && this.picker.resetView(true);
                     this.$refs.drop.destroy();
+                    if (this.open === null) this.$emit('on-open-change', false);
+                    // blur the input
                     const input = this.$el.querySelector('input');
                     if (input) input.blur();
                 }
-                this.$emit('on-open-change', val);
+            },
+            internalValue(val) {
+                if (!val && this.picker && typeof this.picker.handleClear === 'function') {
+                    this.picker.handleClear();
+                } else if (val && typeof val.getTime === 'function'){
+                    this.picker.date = this.internalValue;
+                }
+//                this.$emit('input', val);
             },
             value (val) {
                 this.currentValue = val;
@@ -443,11 +529,17 @@
                 }
             },
             open (val) {
-                this.visible = val === true;
+                if (val === true) {
+                    this.visible = val;
+                    this.$emit('on-open-change', true);
+                } else if (val === false) {
+                    this.$emit('on-open-change', false);
+                }
             }
         },
         mounted () {
             if (this.open !== null) this.visible = this.open;
+            window.picker = this;
         }
     };
 </script>

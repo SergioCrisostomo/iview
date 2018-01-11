@@ -1,6 +1,6 @@
 import Picker from '../picker.vue';
-import DatePickerPanel from '../panel/date.vue';
-import RangeDatePickerPanel from '../panel/date-range.vue';
+import DatePickerPanel from '../panel/Date/date.vue';
+import RangeDatePickerPanel from '../panel/Date/date-range.vue';
 
 import { oneOf } from '../../../utils/assist';
 
@@ -13,13 +13,15 @@ export default {
             },
             default: 'date'
         },
-        value: {}
     },
     components: { DatePickerPanel, RangeDatePickerPanel },
     computed: {
         panel(){
             const isRange =  this.type === 'daterange' || this.type === 'datetimerange';
             return isRange ? 'RangeDatePickerPanel' : 'DatePickerPanel';
+        },
+        ownPickerProps(){
+            return {};
         }
     },
     created () {

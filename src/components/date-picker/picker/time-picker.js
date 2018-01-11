@@ -1,6 +1,6 @@
 import Picker from '../picker.vue';
-import TimePickerPanel from '../panel/time.vue';
-import RangeTimePickerPanel from '../panel/time-range.vue';
+import TimePickerPanel from '../panel/Time/time.vue';
+import RangeTimePickerPanel from '../panel/Time/time-range.vue';
 import Options from '../time-mixins';
 
 import { oneOf } from '../../../utils/assist';
@@ -15,12 +15,24 @@ export default {
             },
             default: 'time'
         },
-        value: {}
+    },
+    data(){
+      return {
+
+      }
     },
     computed: {
         panel(){
             const isRange =  this.type === 'timerange';
             return isRange ? 'RangeTimePickerPanel' : 'TimePickerPanel';
+        },
+        ownPickerProps(){
+            return {
+                ...this.disabledHours,
+                ...this.disabledMinutes,
+                ...this.disabledSeconds,
+                ...this.hideDisabledOptions,
+            }
         }
     },
     created () {
