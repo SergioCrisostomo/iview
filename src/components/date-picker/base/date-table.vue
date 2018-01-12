@@ -36,10 +36,16 @@
                 type: Number,
                 required: true
             },
+            panelFunction: {
+                type: String,
+                required: true
+            },
             selectionMode: {
                 default: 'date'
             },
-            disabledDate: {},
+            disabledDate: {
+                type: Function
+            },
             value: {
                 type: Array,
                 required: true
@@ -48,7 +54,11 @@
         data () {
             return {
                 prefixCls: prefixCls,
-                dates: this.value
+                dates: this.value,
+                rangeState: {
+                    endDate: null,
+                    selecting: false
+                }
             };
         },
         watch: {
@@ -92,9 +102,8 @@
                 const weekStartDay = Number(this.t('i.datepicker.weekStartDay'));
                 const day = (getFirstDayOfMonth(date) || 7) - weekStartDay; // day of first day
                 const today = clearHours(new Date());    // timestamp of today
-                const selectDay = clearHours(new Date(this.value));    // timestamp of selected day
-                const minDay = clearHours(new Date(this.minDate));
-                const maxDay = clearHours(new Date(this.maxDate));
+                const selectedDays = this.dates.map(clearHours);    // timestamp of selected days
+                const [minDay, maxDay] = this.dates.map(clearHours);
 
                 const dateCountOfMonth = getDayCountOfMonth(date.getFullYear(), date.getMonth());
                 const dateCountOfLastMonth = getDayCountOfMonth(date.getFullYear(), (date.getMonth() === 0 ? 11 : date.getMonth() - 1));
@@ -130,12 +139,13 @@
                     cell.date = new Date(this.year, this.month, cell.text);
                     const time = clearHours(cell.date);
                     cell.type = time === today ? 'today' : 'normal';
-                    cell.selected = time === selectDay;
+                    cell.selected = selectedDays.includes(time);
                     cell.disabled = typeof disabledDate === 'function' && disabledDate(new Date(time));
-                    cell.range = time >= minDay && time <= maxDay;
-                    cell.start = this.minDate && time === minDay;
-                    cell.end = this.maxDate && time === maxDay;
-
+                    if (this.selectionMode === 'range'){
+                        cell.range = time >= minDay && time <= maxDay;
+                        cell.start = time === minDay;
+                        cell.end = time === maxDay;
+                    }
                     cells.push(cell);
                 }
 

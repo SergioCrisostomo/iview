@@ -33,6 +33,7 @@
                     ref="pickerTable"
                     :year="year"
                     :month="month"
+                    panel-function="single"
                     :value="date"
                     :selection-mode="selectionMode"
                     :disabled-date="disabledDate"
