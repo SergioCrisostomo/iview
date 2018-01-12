@@ -38,7 +38,7 @@
                         :selectionMode="selectionMode"
                         :steps="steps"
                         :format="format"
-                        :value="intervalValue"
+                        :value="internalValue"
 
                         v-bind="ownPickerProps"
 
@@ -46,6 +46,7 @@
                         @on-pick-clear="handleClear"
                         @on-pick-success="onPickSuccess"
                         @on-pick-click="disableClickOutSide = true"
+                        @on-selection-mode-change="onSelectionModeChange"
                     ></component>
                 </div>
             </Drop>
@@ -231,28 +232,39 @@
                 type: Array,
                 default: () => []
             },
-            value: {}
+            value: {
+                type: [Date, String, Array],
+                validator(val){
+                    if (Array.isArray(val)){
+                        const [start, end] = val.map(v => new Date(v));
+                        return !isNaN(start.getTime()) && !isNaN(end.getTime());
+                    } else {
+                        if (typeof val === 'string') val = val.trim();
+                        const date = new Date(val);
+                        return val === '' || val === null || !isNaN(date.getTime());
+                    }
+                }
+            }
         },
         data(){
-            const isRange = this.type.includes('range');
+            const initialValue = this.formatDate(this.value);
+
             return {
                 prefixCls: prefixCls,
                 showClose: false,
                 visible: false,
-                picker: {showTime: true, ...this.options},
-                intervalValue: isRange ? [null, null] : [],
+                internalValue: initialValue,
                 disableClickOutSide: false,    // fixed when click a date,trigger clickoutside to close picker
-                disableCloseUnderTransfer: false,  // transfer 模式下，点击Drop也会触发关闭
-                currentValue: this.value
+                disableCloseUnderTransfer: false,  // transfer 模式下，点击Drop也会触发关闭,
+                selectionMode: this.onSelectionModeChange(this.type)
             }
         },
         computed: {
-              publicValue(){
+            publicValue(){
                 const isRange = this.type.includes('range');
+                console.log(JSON.stringify(this.internalValue), '<<<<<<<');
                 return isRange ? this.internalValue : this.internalValue[0];
             },
-
-
 
             opened () {
                 return this.open === null ? this.visible : this.open;
@@ -267,48 +279,28 @@
                 const bottomPlaced = this.placement.match(/^bottom/);
                 return bottomPlaced ? 'slide-up' : 'slide-down';
             },
-            selectionMode() {
-                if (this.type === 'year') {
-                    return 'year';
-                } else if (this.type === 'month') {
-                    return 'month';
-                } else {
-                    return 'date';
-                }
-            },
-            visualValue: {
-                get () {
-                    const value = this.internalValue;
-                    if (!value) return;
-                    const formatter = (
-                        TYPE_VALUE_RESOLVER_MAP[this.type] ||
-                        TYPE_VALUE_RESOLVER_MAP['default']
-                    ).formatter;
-                    const format = DEFAULT_FORMATS[this.type];
+            visualValue() {
+                const value = this.internalValue;
 
-                    return formatter(value, this.format || format);
-                },
-                set (value) {
-                    if (value) {
-                        const type = this.type;
-                        const parser = (
-                            TYPE_VALUE_RESOLVER_MAP[type] ||
-                            TYPE_VALUE_RESOLVER_MAP['default']
-                        ).parser;
-                        const parsedValue = parser(value, this.format || DEFAULT_FORMATS[type]);
-                        if (parsedValue) {
-                            if (this.picker) this.picker.value = parsedValue;
-                        }
-                        return;
-                    }
-                    if (this.picker) this.picker.value = value;
-                }
+                if (!value) return;
+                const formatter = (
+                    TYPE_VALUE_RESOLVER_MAP[this.type] ||
+                    TYPE_VALUE_RESOLVER_MAP['default']
+                ).formatter;
+                const format = DEFAULT_FORMATS[this.type];
+                return formatter(value, this.format || format);
             },
             isConfirm(){
                 return this.confirm || this.type === 'datetime' || this.type === 'datetimerange';
             }
         },
         methods: {
+            onSelectionModeChange(type){
+                if (type.match(/^date/)) type = 'date';
+                this.selectionMode = type;
+                console.log('onSelectionModeChange', type);
+                return type;
+            },
             // 开启 transfer 时，点击 Drop 即会关闭，这里不让其关闭
             handleTransferClick () {
                 if (this.transfer) this.disableCloseUnderTransfer = true;
@@ -331,15 +323,13 @@
                 this.visible = false;
             },
             handleInputChange (event) {
-                const oldValue = this.internalValue;
+                const oldValue = this.visualValue;
                 const newValue = event.target.value;
-                const visualValue = 'Something';
 
-
-                this.visualValue = visualValue;
-                this.internalValue = newValue;
-
-                if (newValue !== oldValue) this.emitChange(this.  publicValue);
+                if (newValue !== oldValue) {
+                    this.emitChange(this.  publicValue);
+                    this.internalValue = this.formatDate(newValue);
+                }
             },
             handleInputMouseenter () {
                 if (this.readonly || this.disabled) return;
@@ -360,43 +350,47 @@
             handleClear () {
                 this.visible = false;
                 this.internalValue = this.internalValue.map(() => null);
-                this.visualValue = '';
+
                 this.$emit('on-clear');
                 this.dispatch('FormItem', 'on-form-change', '');
                 this.emitChange('');
             },
             emitChange (date) {
-                const newDate = this.formattingDate(date);
+                const newDate = this.formatDate(date);
 
                 this.$emit('on-change', newDate);
                 this.$nextTick(() => {
                     this.dispatch('FormItem', 'on-form-change', newDate);
                 });
             },
-            formattingDate (date) {
+            formatDate (val) {
+                const isRange = this.type.includes('range');
+
                 const type = this.type;
-                const format = this.format || DEFAULT_FORMATS[type];
-                const formatter = (
+                const parser = (
                     TYPE_VALUE_RESOLVER_MAP[type] ||
                     TYPE_VALUE_RESOLVER_MAP['default']
-                ).formatter;
+                ).parser;
 
-                let newDate = formatter(date, format);
-                if (type === 'daterange' || type === 'timerange' || type === 'datetimerange') {
-                    newDate = [newDate.split(RANGE_SEPARATOR)[0], newDate.split(RANGE_SEPARATOR)[1]];
+                if (val && type === 'time' && !(val instanceof Date)) {
+                    val = parser(val, this.format || DEFAULT_FORMATS[type]);
+                } else if (type.match(/range$/)) {
+                    if (!val){
+                        val = [null, null];
+                    } else {
+                        val = val.map(date => new Date(date)); // try to parse
+                        console.log(JSON.stringify(val))
+                        val = val.map(date => isNaN(date.getTime()) ? null : date); // check if parse passed
+                    }
+                } else if (typeof val === 'string' && type.indexOf('time') !== 0 ){
+                    val = parser(val, this.format || DEFAULT_FORMATS[type]) || val;
                 }
-                return newDate;
+                console.log('formatDate', val)
+                return isRange ? val : [val];
             },
             onPick(date, visible = false) {
-/*
-                // create new Date objects so Vue's reactive trigger gets called
-                date = Array.isArray(date) ? date.map(d => new Date(d)) : new Date(date);
-
-                this.currentValue = date;
-                this.picker.value = date;
-                this.picker.resetView && this.picker.resetView();
-                */
-
+                this.internalValue = [date];
+                this.onSelectionModeChange(this.type); // reset the selectionMode
                 if (!this.isConfirm) this.visible = visible;
                 this.emitChange(date);
             },
@@ -417,36 +411,38 @@
                 }
                 this.$emit('on-open-change', val);
             },
-            value (val) {
-                this.currentValue = val;
-            },
-            currentValue: {
-                immediate: true,
-                handler (val) {
-                    const type = this.type;
-                    const parser = (
-                        TYPE_VALUE_RESOLVER_MAP[type] ||
-                        TYPE_VALUE_RESOLVER_MAP['default']
-                    ).parser;
+            value(val) {
+                console.log('value watcher', val);
+                const type = this.type;
+                const parser = (
+                    TYPE_VALUE_RESOLVER_MAP[type] ||
+                    TYPE_VALUE_RESOLVER_MAP['default']
+                ).parser;
 
-                    if (val && type === 'time' && !(val instanceof Date)) {
-                        val = parser(val, this.format || DEFAULT_FORMATS[type]);
-                    } else if (val && type.match(/range$/) && Array.isArray(val) && val.filter(Boolean).length === 2 && !(val[0] instanceof Date) && !(val[1] instanceof Date)) {
-                        val = val.join(RANGE_SEPARATOR);
-                        val = parser(val, this.format || DEFAULT_FORMATS[type]);
-                    } else if (typeof val === 'string' && type.indexOf('time') !== 0 ){
-                        val = parser(val, this.format || DEFAULT_FORMATS[type]) || val;
-                    }
-
-                    this.internalValue = val;
-                    this.$emit('input', val);
+                if (val && type === 'time' && !(val instanceof Date)) {
+                    val = parser(val, this.format || DEFAULT_FORMATS[type]);
+                } else if (val && type.match(/range$/) && Array.isArray(val) && val.filter(Boolean).length === 2 && !(val[0] instanceof Date) && !(val[1] instanceof Date)) {
+                    val = val.join(RANGE_SEPARATOR);
+                    val = parser(val, this.format || DEFAULT_FORMATS[type]);
+                } else if (typeof val === 'string' && type.indexOf('time') !== 0 ){
+                    val = parser(val, this.format || DEFAULT_FORMATS[type]) || val;
                 }
+
+                this.internalValue = val;
+                this.$emit('input', val);
             },
             open (val) {
                 this.visible = val === true;
+            },
+            internalValue(val){
+                console.log('internalValue???', val);
+            },
+            type(type){
+                this.onSelectionModeChange(type);
             }
         },
         mounted () {
+            console.log('mounted!', this.value);
             if (this.open !== null) this.visible = this.open;
         }
     };

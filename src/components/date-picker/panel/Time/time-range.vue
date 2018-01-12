@@ -156,6 +156,7 @@
                 this.secondsEnd = '';
             },
             handleChange (date, dateEnd, emit = true) {
+                console.log(date, dateEnd, emit)
                 const oldDateEnd = new Date(this.dateEnd);
 
                 if (date.hours !== undefined) {

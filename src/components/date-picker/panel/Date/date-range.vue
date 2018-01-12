@@ -30,14 +30,10 @@
                 </div>
                 <component
                     :is="pickerTable"
-                    :year="leftYear"
-                    :month="leftMonth"
-                    :date="date"
-                    :min-date="minDate"
-                    :max-date="maxDate"
-                    :range-state="rangeState"
+                    ref="leftYearTable"
                     selection-mode="range"
                     :disabled-date="disabledDate"
+                    :value="leftTableDate"
                     @on-changerange="handleChangeRange"
                     @on-pick="handleRangePick"
                     @on-pick-click="handlePickClick"
@@ -66,14 +62,12 @@
                 </div>
                 <component
                     :is="pickerTable"
+                    ref="rightYearTable"
                     :year="rightYear"
                     :month="rightMonth"
-                    :date="rightDate"
-                    :min-date="minDate"
-                    :max-date="maxDate"
-                    :range-state="rangeState"
                     selection-mode="range"
                     :disabled-date="disabledDate"
+                    :value="rightTableDate"
                     @on-changerange="handleChangeRange"
                     @on-pick="handleRangePick"
                     @on-pick-click="handlePickClick"></component>
@@ -120,15 +114,11 @@
         mixins: [ Mixin, Locale, DateMixin ],
         components: { Icon, DateTable, YearTable, MonthTable, TimePicker, Confirm, datePanelLabel },
         props: {
-            value: {
-                type: Array,
-                default: () => [initTimeDate(), initTimeDate()]
-            }
+            // in the mixin
         },
         data(){
             const date = this.value.map(date => date || initTimeDate());
             const [leftPanelDate, rightPanelDate] = date;
-            console.log(date, leftPanelDate, rightPanelDate)
 
             return {
                 prefixCls: prefixCls,
@@ -136,14 +126,7 @@
                 date: date,
                 minDate: '',
                 maxDate: '',
-                rangeState: {
-                    endDate: null,
-                    selecting: false
-                },
                 currentView: this.selectionMode,
-                leftTableYear: leftPanelDate.getFullYear(),
-                rightTableYear: rightPanelDate.getFullYear(),
-                isTime: false
             };
         },
         computed: {
@@ -163,40 +146,19 @@
                 return this.date[0].getFullYear();
             },
             leftTableDate(){
-                if (this.currentView === 'year' || this.currentView === 'month') {
-                    return new Date(this.leftTableYear);
-                } else {
-                    return this.date[0];
-                }
+                return this.date[0];
             },
             leftMonth(){
                 return this.date[0].getMonth();
             },
             rightYear(){
-                return this.rightDate.getFullYear();
+                return this.rightTableDate.getFullYear();
             },
             rightTableDate(){
-                if (this.currentView === 'year' || this.currentView === 'month') {
-                    return new Date(this.rightTableYear);
-                } else {
-                    return this.date[1];
-                }
+                return this.date[1];
             },
             rightMonth(){
-                return this.rightDate.getMonth();
-            },
-            rightDate(){
-                const newDate = new Date(this.date[1]);
-                const month = newDate.getMonth();
-                newDate.setDate(1);
-
-                if (month === 11) {
-                    newDate.setFullYear(newDate.getFullYear() + 1);
-                    newDate.setMonth(0);
-                } else {
-                    newDate.setMonth(month + 1);
-                }
-                return newDate;
+                return this.rightTableDate.getMonth();
             },
             leftDatePanelLabel(){
                 if (!this.leftYear) return null; // not ready yet
@@ -248,8 +210,6 @@
             },
             resetDate(){
                 this.date = this.date.map(date => new Date(date));
-                this.leftTableYear = this.date[0].getFullYear();
-                this.rightTableYear = this.date[1].getFullYear();
             },
             handleClear() {
                 this.minDate = null;
@@ -260,11 +220,6 @@
             },
             resetView(reset = false) {
                 this.currentView = 'date';
-
-                this.leftTableYear = this.leftYear;
-                this.rightTableYear = this.rightYear;
-
-                if (reset) this.isTime = false;
             },
             prevYear (direction, panel = 0) {
                 if (this[`${direction}CurrentView`] === 'year') {
@@ -361,10 +316,9 @@
             handleChangeRange (val) {
                 this.minDate = val.minDate;
                 this.maxDate = val.maxDate;
-                this.rangeState = val.rangeState;
             },
             handleToggleTime(){
-                this.isTime = !this.isTime;
+                this.currentView = 'date';
             },
             handleTimePick (date) {
                 this.minDate = date[0];
@@ -375,10 +329,14 @@
         mounted(){
             if (this.showTime) {
                 // todo 这里也到不了
+
+/*
+                TODO
                 this.$refs.timePicker.date = this.minDate;
                 this.$refs.timePicker.dateEnd = this.maxDate;
                 this.$refs.timePicker.value = this.value;
                 this.$refs.timePicker.showDate = true;
+*/
             }
         }
     };

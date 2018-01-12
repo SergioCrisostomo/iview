@@ -1,5 +1,7 @@
 
 import { oneOf } from '../../../../utils/assist';
+import {initTimeDate } from '../../util';
+
 
 export default {
     props: {
@@ -29,6 +31,15 @@ export default {
         disabledDate: {
             type: Function,
             default: () => false
+        },
+        value: {
+            type: Array,
+            default: () => [initTimeDate(), initTimeDate()]
         }
     },
+    computed: {
+        isTime(){
+            return this.currentView === 'time';
+        }
+    }
 }

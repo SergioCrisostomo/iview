@@ -11,9 +11,9 @@
     export default {
         mixins: [ Locale ],
         props: {
-            date: {},
             month: {
-                type: Number
+                type: Number,
+                required: true
             },
             disabledDate: {},
             selectionMode: {

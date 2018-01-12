@@ -7,7 +7,9 @@
                 {{day}}
             </span>
         </div>
-        <span :class="getCellCls(cell)" v-for="(cell, index) in readCells"><em :index="index" @click="handleClick(cell)">{{ cell.text }}</em></span>
+        <span :class="getCellCls(cell)" v-for="(cell, index) in readCells">
+            <em :index="index" @click="handleClick(cell)">{{ cell.text }}</em>
+        </span>
     </div>
 </template>
 <script>
@@ -26,29 +28,27 @@
     export default {
         mixins: [ Locale ],
         props: {
-            date: {},
-            year: {},
-            month: {},
+            year: {
+                type: Number,
+                required: true
+            },
+            month: {
+                type: Number,
+                required: true
+            },
             selectionMode: {
                 default: 'date'
             },
             disabledDate: {},
-            minDate: {},
-            maxDate: {},
-            rangeState: {
-                default () {
-                    return {
-                        endDate: null,
-                        selecting: false
-                    };
-                }
-            },
-            value: ''
+            value: {
+                type: Array,
+                required: true
+            }
         },
         data () {
             return {
                 prefixCls: prefixCls,
-                readCells: []
+                dates: this.value
             };
         },
         watch: {
@@ -70,18 +70,8 @@
                 if (newVal && !oldVal) {
                     this.rangeState.selecting = false;
                     this.markRange(newVal);
-//                    this.$emit('on-pick', {
-//                        minDate: this.minDate,
-//                        maxDate: this.maxDate
-//                    });
                 }
             },
-            cells: {
-                handler (cells) {
-                    this.readCells = cells;
-                },
-                immediate: true
-            }
         },
         computed: {
             classes () {
@@ -97,7 +87,7 @@
                 const weekDays = translatedDays.splice(weekStartDay, 7 - weekStartDay).concat(translatedDays.splice(0, weekStartDay));
                 return weekDays;
             },
-            cells () {
+            readCells () {
                 const date = new Date(this.year, this.month, 1);
                 const weekStartDay = Number(this.t('i.datepicker.weekStartDay'));
                 const day = (getFirstDayOfMonth(date) || 7) - weekStartDay; // day of first day
@@ -229,10 +219,14 @@
                         cell.range = time >= minDay && time <= maxDay;
                         cell.start = minDate && time === minDay;
                         cell.end = maxDate && time === maxDay;
+
+                        console.log(cell.start, time, minDay, maxDay, cell.range, cell.end)
+
                     }
                 });
             },
             getCellCls (cell) {
+                console.log(cell.selected, cell.start, cell.end, cell.date)
                 return [
                     `${prefixCls}-cell`,
                     {

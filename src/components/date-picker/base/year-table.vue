@@ -9,8 +9,10 @@
 
     export default {
         props: {
-            date: {},
-            year: {},
+            year: {
+                type: Number,
+                required: true
+            },
             disabledDate: {},
             selectionMode: {
                 default: 'year'

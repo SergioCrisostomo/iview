@@ -24,6 +24,7 @@ export default {
             return {};
         }
     },
+/*
     created () {
         if (!this.currentValue) {
             if (this.type === 'daterange' || this.type === 'datetimerange') {
@@ -33,4 +34,5 @@ export default {
             }
         }
     }
+*/
 };
