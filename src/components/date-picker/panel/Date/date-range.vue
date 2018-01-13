@@ -176,19 +176,16 @@
                 if (val) this.$refs.timePicker.updateScroll();
             },
             currentView(currentView){
-                const leftYear = this.leftPanelDate.getFullYear();
                 const leftMonth = this.leftPanelDate.getMonth();
-
-                const rightYear = this.rightPanelDate.getFullYear();
                 const rightMonth = this.rightPanelDate.getMonth();
-
-                const isSameYear = leftYear === rightYear;
+                const isSameYear = this.leftPanelDate.getFullYear() === this.rightPanelDate.getFullYear();
 
                 if (currentView === 'date' && isSameYear && leftMonth === rightMonth){
                     this.changePanelDate('right', 'Month', 1);
                 }
-                if (currentView === 'month' && isSameYear && leftMonth === rightMonth){
-                    this.changePanelDate('right', 'Month', 1);
+                console.log(currentView, isSameYear);
+                if (currentView === 'month' && isSameYear){
+                    this.changePanelDate('right', 'FullYear', 1);
                 }
                 if (currentView === 'year' && isSameYear){
                     this.changePanelDate('right', 'FullYear', 10);
