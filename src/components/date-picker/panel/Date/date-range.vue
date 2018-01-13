@@ -222,6 +222,15 @@
                 const current = new Date(this[`${panel}PanelDate`]);
                 current[`set${type}`](current[`get${type}`]() + increment);
                 this[`${panel}PanelDate`] = current;
+
+                // change other panel if they overlap
+                const otherPanel = panel === 'left' ? 'right' : 'left';
+                if (panel === 'left' && this.leftPanelDate >= this.rightPanelDate){
+                    this.changePanelDate(otherPanel, type, 1);
+                }
+                if (panel === 'right' && this.rightPanelDate <= this.leftPanelDate){
+                    this.changePanelDate(otherPanel, type, -1);
+                }
             },
             handleLeftYearPick (year, close = true) {
                 this.handleYearPick(year, close, 'left');

@@ -262,7 +262,7 @@
         computed: {
             publicValue(){
                 const isRange = this.type.includes('range');
-                return isRange ? this.internalValue.map(this.formatDate) : this.formatDate(this.internalValue[0]);
+                return isRange ? this.formatDate(this.internalValue) : this.formatDate(this.internalValue[0]);
             },
 
             opened () {
