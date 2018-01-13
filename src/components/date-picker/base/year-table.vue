@@ -5,26 +5,14 @@
 </template>
 <script>
     import { deepCopy } from '../../../utils/assist';
-    const prefixCls = 'ivu-date-picker-cells';
+    import mixin from './mixin';
+    import prefixCls from './prefixCls';
 
     export default {
-        props: {
-            year: {
-                type: Number,
-                required: true
-            },
-            disabledDate: {},
-            selectionMode: {
-                default: 'year'
-            }
-        },
+        mixins: [ mixin ],
+
+        props: {/* in mixin */},
         computed: {
-            classes () {
-                return [
-                    `${prefixCls}`,
-                    `${prefixCls}-year`
-                ];
-            },
             startYear() {
                 return Math.floor(this.year / 10) * 10;
             },

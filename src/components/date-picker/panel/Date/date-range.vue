@@ -267,12 +267,11 @@
                 this[`${direction}CurrentView`] = 'date';
                 this.resetDate();
             },
-            showYearPicker (direction) {
-                this[`${direction}CurrentView`] = 'year';
-                this[`${direction}TableYear`] = this[`${direction}Year`];
+            showYearPicker () {
+                this.currentView = 'year';
             },
-            showMonthPicker (direction) {
-                this[`${direction}CurrentView`] = 'month';
+            showMonthPicker () {
+                this.currentView = 'month';
             },
             handleConfirm(visible) {
                 this.$emit('on-pick', this.dates, visible);

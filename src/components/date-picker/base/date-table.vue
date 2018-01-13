@@ -15,7 +15,8 @@
     import { deepCopy } from '../../../utils/assist';
     import Locale from '../../../mixins/locale';
 
-    const prefixCls = 'ivu-date-picker-cells';
+    import mixin from './mixin';
+    import prefixCls from './prefixCls';
 
     const clearHours = function (time) {
         const cloneDate = new Date(time);
@@ -30,18 +31,10 @@
     };
 
     export default {
-        mixins: [ Locale ],
+        mixins: [ Locale, mixin ],
+
         props: {
-            tableDate: {
-                type: Date,
-                required: true
-            },
-            selectionMode: {
-                default: 'date'
-            },
-            disabledDate: {
-                type: Function
-            },
+            /* more props in mixin */
             value: {
                 type: Array,
                 required: true

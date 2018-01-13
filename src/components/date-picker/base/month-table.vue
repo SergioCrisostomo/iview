@@ -6,27 +6,13 @@
 <script>
     import { deepCopy } from '../../../utils/assist';
     import Locale from '../../../mixins/locale';
-    const prefixCls = 'ivu-date-picker-cells';
+    import mixin from './mixin';
+    import prefixCls from './prefixCls';
 
     export default {
-        mixins: [ Locale ],
-        props: {
-            month: {
-                type: Number,
-                required: true
-            },
-            disabledDate: {},
-            selectionMode: {
-                default: 'month'
-            }
-        },
+        mixins: [ Locale, mixin ],
+        props: {/* in mixin */},
         computed: {
-            classes () {
-                return [
-                    `${prefixCls}`,
-                    `${prefixCls}-month`
-                ];
-            },
             cells () {
                 let cells = [];
                 const cell_tmpl = {
