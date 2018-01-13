@@ -262,8 +262,7 @@
         computed: {
             publicValue(){
                 const isRange = this.type.includes('range');
-                console.log(JSON.stringify(this.internalValue), '<<<<<<<');
-                return isRange ? this.internalValue : this.internalValue[0];
+                return isRange ? this.internalValue.map(this.formatDate) : this.formatDate(this.internalValue[0]);
             },
 
             opened () {
@@ -298,7 +297,6 @@
             onSelectionModeChange(type){
                 if (type.match(/^date/)) type = 'date';
                 this.selectionMode = type;
-                console.log('onSelectionModeChange', type);
                 return type;
             },
             // 开启 transfer 时，点击 Drop 即会关闭，这里不让其关闭
@@ -327,7 +325,7 @@
                 const newValue = event.target.value;
 
                 if (newValue !== oldValue) {
-                    this.emitChange(this.  publicValue);
+                    this.emitChange();
                     this.internalValue = this.formatDate(newValue);
                 }
             },
@@ -353,14 +351,12 @@
 
                 this.$emit('on-clear');
                 this.dispatch('FormItem', 'on-form-change', '');
-                this.emitChange('');
+                this.emitChange();
             },
-            emitChange (date) {
-                const newDate = this.formatDate(date);
-
-                this.$emit('on-change', newDate);
+            emitChange () {
+                this.$emit('on-change', this.publicValue);
                 this.$nextTick(() => {
-                    this.dispatch('FormItem', 'on-form-change', newDate);
+                    this.dispatch('FormItem', 'on-form-change', this.publicValue);
                 });
             },
             formatDate (val) {
@@ -379,20 +375,18 @@
                         val = [null, null];
                     } else {
                         val = val.map(date => new Date(date)); // try to parse
-                        console.log(JSON.stringify(val))
                         val = val.map(date => isNaN(date.getTime()) ? null : date); // check if parse passed
                     }
                 } else if (typeof val === 'string' && type.indexOf('time') !== 0 ){
                     val = parser(val, this.format || DEFAULT_FORMATS[type]) || val;
                 }
-                console.log('formatDate', val)
                 return isRange ? val : [val];
             },
-            onPick(date, visible = false) {
-                this.internalValue = [date];
+            onPick(dates, visible = false) {
+                this.internalValue = dates;
                 this.onSelectionModeChange(this.type); // reset the selectionMode
                 if (!this.isConfirm) this.visible = visible;
-                this.emitChange(date);
+                this.emitChange();
             },
             onPickSuccess(){
                 this.visible = false;
@@ -412,7 +406,6 @@
                 this.$emit('on-open-change', val);
             },
             value(val) {
-                console.log('value watcher', val);
                 const type = this.type;
                 const parser = (
                     TYPE_VALUE_RESOLVER_MAP[type] ||
@@ -442,7 +435,6 @@
             }
         },
         mounted () {
-            console.log('mounted!', this.value);
             if (this.open !== null) this.visible = this.open;
         }
     };

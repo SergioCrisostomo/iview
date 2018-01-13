@@ -14,7 +14,7 @@
                         @click="prevYear('left')"><Icon type="ios-arrow-left"></Icon></span>
                     <span
                         :class="iconBtnCls('prev')"
-                        @click="prevMonth()"
+                        @click="prevMonth('left')"
                         v-show="currentView === 'date'"><Icon type="ios-arrow-left"></Icon></span>
                     <date-panel-label
                         :date-panel-label="leftDatePanelLabel"
@@ -25,19 +25,19 @@
                         @click="nextYear('left')"><Icon type="ios-arrow-right"></Icon></span>
                     <span
                         :class="iconBtnCls('next')"
-                        @click="nextMonth()"
+                        @click="nextMonth('left')"
                         v-show="currentView === 'date'"><Icon type="ios-arrow-right"></Icon></span>
                 </div>
                 <component
                     :is="pickerTable"
                     ref="leftYearTable"
-                    :year="leftYear"
-                    :month="leftMonth"
-                    panel-function="left"
+                    :table-date="leftPanelDate"
+                    range
                     selection-mode="range"
                     :disabled-date="disabledDate"
+                    :range-state="rangeState"
                     :value="dates"
-                    @on-changerange="handleChangeRange"
+                    @on-change-range="handleChangeRange"
                     @on-pick="handleRangePick"
                     @on-pick-click="handlePickClick"
                 ></component>
@@ -49,7 +49,7 @@
                         @click="prevYear('right')"><Icon type="ios-arrow-left"></Icon></span>
                     <span
                         :class="iconBtnCls('prev')"
-                        @click="prevMonth()"
+                        @click="prevMonth('right')"
                         v-show="currentView === 'date'"><Icon type="ios-arrow-left"></Icon></span>
                     <date-panel-label
                         :date-panel-label="rightDatePanelLabel"
@@ -60,19 +60,18 @@
                         @click="nextYear('right')"><Icon type="ios-arrow-right"></Icon></span>
                     <span
                         :class="iconBtnCls('next')"
-                        @click="nextMonth()"
+                        @click="nextMonth('right')"
                         v-show="currentView === 'date'"><Icon type="ios-arrow-right"></Icon></span>
                 </div>
                 <component
                     :is="pickerTable"
                     ref="rightYearTable"
-                    :year="rightYear"
-                    :month="rightMonth"
-                    panel-function="right"
+                    :table-date="rightPanelDate"
                     selection-mode="range"
+                    :range-state="rangeState"
                     :disabled-date="disabledDate"
                     :value="dates"
-                    @on-changerange="handleChangeRange"
+                    @on-change-range="handleChangeRange"
                     @on-pick="handleRangePick"
                     @on-pick-click="handlePickClick"></component>
             </div>
@@ -113,6 +112,7 @@
     const prefixCls = 'ivu-picker-panel';
     const datePrefixCls = 'ivu-date-picker';
 
+
     export default {
         name: 'RangeDatePickerPanel',
         mixins: [ Mixin, Locale, DateMixin ],
@@ -121,15 +121,15 @@
             // in the mixin
         },
         data(){
-            const dates = this.value.map(date => date || initTimeDate());
-
+            const [minDate, maxDate] = this.value.map(date => date || initTimeDate());
             return {
                 prefixCls: prefixCls,
                 datePrefixCls: datePrefixCls,
-                dates: dates,
-                minDate: '',
-                maxDate: '',
+                dates: [minDate, maxDate],
+                rangeState: {from: minDate, to: maxDate, selecting: minDate && !maxDate},
                 currentView: this.selectionMode,
+                leftPanelDate: minDate,
+                rightPanelDate: new Date(minDate.getFullYear(), minDate.getMonth() + 1, minDate.getDate())
             };
         },
         computed: {
@@ -145,43 +145,26 @@
             pickerTable(){
                 return `${this.currentView}-table`;
             },
-            leftYear(){
-                return this.dates[0].getFullYear();
-            },
-            leftTableDate(){
-                return this.dates[0];
-            },
-            leftMonth(){
-                return this.dates[0].getMonth();
-            },
-            rightYear(){
-                return this.rightTableDate.getFullYear();
-            },
-            rightTableDate(){
-                return this.dates[1];
-            },
-            rightMonth(){
-                return this.rightTableDate.getMonth();
-            },
             leftDatePanelLabel(){
-                if (!this.leftYear) return null; // not ready yet
                 return this.panelLabelConfig('left');
             },
             rightDatePanelLabel(){
-                if (!this.leftYear) return null; // not ready yet
                 return this.panelLabelConfig('right');
             },
             timeDisabled(){
-                return !(this.minDate && this.maxDate);
+                return !(this.dates[0] && this.dates[1]);
             }
         },
         watch: {
             value(newVal) {
-                this.minDate = newVal[0] ? toDate(newVal[0]) : null;
-                this.maxDate = newVal[1] ? toDate(newVal[1]) : null;
-                this.dates[0] = new Date(this.minDate);
-                this.dates[1] = new Date(this.maxDate);
-
+                const minDate = newVal[0] ? toDate(newVal[0]) : null;
+                const maxDate = newVal[1] ? toDate(newVal[1]) : null;
+                this.dates = [minDate, maxDate];
+                this.rangeState = {
+                    from: minDate,
+                    to: maxDate,
+                    selecting: false
+                }
                // if (this.showTime) this.$refs.timePicker.value = this.dates;
             },
             minDate (val) {
@@ -203,7 +186,7 @@
                     return () => fn(direction);
                 };
 
-                const date = new Date(this[`${direction}Year`], this[`${direction}Month`]);
+                const date = this[`${direction}PanelDate`];
                 const { labels, separator } = formatDateLabels(locale, datePanelLabel, date);
 
                 return {
@@ -215,42 +198,30 @@
                 this.dates = this.dates.map(date => new Date(date));
             },
             handleClear() {
-                this.minDate = null;
-                this.maxDate = null;
                 this.dates = this.dates.map(() => new Date());
+                this.rangeState = {};
                 this.handleConfirm();
               //  if (this.showTime) this.$refs.timePicker.handleClear();
             },
             resetView(reset = false) {
                 this.currentView = 'date';
             },
-            prevYear (direction, panel = 0) {
-                if (this[`${direction}CurrentView`] === 'year') {
-                    this.$refs[`${direction}YearTable`].prevTenYear();
-                } else if (this[`${direction}CurrentView`] === 'month') {
-                    this[`${direction}TableYear`]--;
-                } else {
-                    const date = this.dates[panel];
-                    date.setFullYear(date.getFullYear() - 1);
-                    this.resetDate();
-                }
+            prevYear (direction) {
+                this.changePanelDate(direction, 'FullYear', -1);
             },
-            nextYear (direction, panel = 1) {
-                if (this[`${direction}CurrentView`] === 'year') {
-                    this.$refs[`${direction}YearTable`].nextTenYear();
-                } else if (this[`${direction}CurrentView`] === 'month') {
-                    this[`${direction}TableYear`]++;
-                } else {
-                    const date = this.dates[panel];
-                    date.setFullYear(date.getFullYear() + 1);
-                    this.resetDate();
-                }
+            nextYear (direction) {
+                this.changePanelDate(direction, 'FullYear', 1);
             },
-            prevMonth(panel = 0){
-                this.dates[panel] = prevMonth(this.date[panel]);
+            prevMonth(direction){
+                this.changePanelDate(direction, 'Month', -1);
             },
-            nextMonth(panel = 1){
-                this.dates[panel] = nextMonth(this.date[panel]);
+            nextMonth(direction){
+                this.changePanelDate(direction, 'Month', 1);
+            },
+            changePanelDate(panel, type, increment){
+                const current = new Date(this[`${panel}PanelDate`]);
+                current[`set${type}`](current[`get${type}`]() + increment);
+                this[`${panel}PanelDate`] = current;
             },
             handleLeftYearPick (year, close = true) {
                 this.handleYearPick(year, close, 'left');
@@ -281,8 +252,9 @@
                     }
                 }
 
-                this.dates[direction === 'left' ? 0 : 1].setYear(year);
-                this.dates[direction === 'left' ? 0 : 1].setMonth(month);
+                const index = direction === 'left' ? 0 : 1;
+                this.dates[index].setYear(year);
+                this.dates[index].setMonth(month);
                 this[`${direction}CurrentView`] = 'date';
                 this.resetDate();
             },
@@ -294,38 +266,35 @@
                 this[`${direction}CurrentView`] = 'month';
             },
             handleConfirm(visible) {
-                this.$emit('on-pick', [this.minDate, this.maxDate], visible);
+                this.$emit('on-pick', this.dates, visible);
             },
-            handleRangePick (val, close = true) {
-                if (this.maxDate === val.maxDate && this.minDate === val.minDate) return;
+            handleRangePick (val) {
+                if (this.rangeState.selecting){
+                    const [minDate, maxDate] = [this.rangeState.from, val].sort((a, b) => a - b);
 
-                this.minDate = val.minDate;
-                this.maxDate = val.maxDate;
-
-                // todo Remove when Chromium has fixed bug
-                // https://github.com/iview/iview/issues/2122
-                this.$nextTick(() => {
-                    this.minDate = val.minDate;
-                    this.maxDate = val.maxDate;
-                });
-                /* end of #2122 patch */
-
-                if (!close) return;
-//                if (!this.showTime) {
-//                    this.handleConfirm(false);
-//                }
-                this.handleConfirm(false);
+                    this.dates = [minDate, maxDate];
+                    this.rangeState = {
+                        from: minDate,
+                        to: maxDate,
+                        selecting: false
+                    };
+                    this.handleConfirm(false);
+                } else {
+                    this.rangeState = {
+                        from: val,
+                        to: null,
+                        selecting: true
+                    };
+                }
             },
             handleChangeRange (val) {
-                this.minDate = val.minDate;
-                this.maxDate = val.maxDate;
+                this.rangeState.to = val;
             },
             handleToggleTime(){
                 this.currentView = 'date';
             },
             handleTimePick (date) {
-                this.minDate = date[0];
-                this.maxDate = date[1];
+                this.dates = date
                 this.handleConfirm(false);
             }
         },
@@ -335,8 +304,8 @@
 
 /*
                 TODO
-                this.$refs.timePicker.date = this.minDate;
-                this.$refs.timePicker.dateEnd = this.maxDate;
+                this.$refs.timePicker.date = this.dates[0];
+                this.$refs.timePicker.dateEnd = this.dates[1];
                 this.$refs.timePicker.value = this.value;
                 this.$refs.timePicker.showDate = true;
 */

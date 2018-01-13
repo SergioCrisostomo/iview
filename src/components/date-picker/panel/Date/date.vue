@@ -31,15 +31,23 @@
                 <component
                     :is="pickerTable"
                     ref="pickerTable"
-                    :year="year"
-                    :month="month"
-                    panel-function="single"
+                    :table-date="panelDate"
                     :value="date"
                     :selection-mode="selectionMode"
                     :disabled-date="disabledDate"
                     @on-pick="handlePick"
                     @on-pick-click="handlePickClick"
                 ></component>
+            </div>
+            <div :class="[prefixCls + '-content']" v-show="isTime">
+                <time-picker
+                    v-if="confirm"
+                    :show-time="showTime"
+                    :is-time="isTime"
+                    :time-disabled="timeDisabled"
+                    @on-pick-toggle-time="handleToggleTime"
+                    @on-pick-clear="handlePickClear"
+                    @on-pick-success="handlePickSuccess"></time-picker>
             </div>
             <Confirm
                 v-if="confirm"
@@ -78,12 +86,13 @@
             // in the mixin
         },
         data () {
-            const date = this.value[0];
+            const date = this.value.sort()[0];
             return {
                 prefixCls: prefixCls,
                 datePrefixCls: datePrefixCls,
                 currentView: this.selectionMode || 'date',
                 date: date || new Date(),
+                panelDate: date || new Date()
             };
         },
         computed: {
