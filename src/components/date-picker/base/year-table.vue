@@ -1,9 +1,17 @@
 <template>
-    <div :class="classes" @click="handleClick">
-        <span :class="getCellCls(cell)" v-for="(cell, index) in cells"><em :index="index">{{ cell.text }}</em></span>
+    <div :class="classes">
+        <span
+                :class="getCellCls(cell)"
+                v-for="cell in cells"
+                @click="handleClick(cell)"
+                @mouseenter="handleMouseMove(cell)"
+        >
+            <em>{{ cell.date.getFullYear() }}</em>
+        </span>
     </div>
 </template>
 <script>
+    import { clearHours, isInRange } from '../util';
     import { deepCopy } from '../../../utils/assist';
     import mixin from './mixin';
     import prefixCls from './prefixCls';
@@ -13,8 +21,14 @@
 
         props: {/* in mixin */},
         computed: {
+            classes() {
+                return [
+                    `${prefixCls}`,
+                    `${prefixCls}-year`
+                ];
+            },
             startYear() {
-                return Math.floor(this.year / 10) * 10;
+                return Math.floor(this.tableDate.getFullYear() / 10) * 10;
             },
             cells () {
                 let cells = [];
@@ -24,15 +38,21 @@
                     disabled: false
                 };
 
+                const rangeStart = this.rangeState.from && clearHours(new Date(this.rangeState.from.getFullYear(), 0, 1));
+                const rangeEnd = this.rangeState.to && clearHours(new Date(this.rangeState.to.getFullYear(), 0, 1));
+                const selectedDays = this.dates.map(date => clearHours(new Date(date.getFullYear(), 0, 1)));
+
+                console.log('>>>', new Date(rangeStart), new Date(rangeEnd), JSON.stringify(selectedDays));
+
                 for (let i = 0; i < 10; i++) {
                     const cell = deepCopy(cell_tmpl);
-                    cell.text = this.startYear + i;
+                    cell.date = new Date(this.startYear + i, 0, 1);
+                    cell.disabled = typeof this.disabledDate === 'function' && this.disabledDate(cell.date) && this.selectionMode === 'year';
 
-                    const date = new Date(this.date);
-                    date.setFullYear(cell.text);
-                    cell.disabled = typeof this.disabledDate === 'function' && this.disabledDate(date) && this.selectionMode === 'year';
-
-                    cell.selected = Number(this.year) === cell.text;
+                    const time = clearHours(cell.date);
+                    console.log(time, selectedDays.includes(time), new Date(time));
+                    cell.range = isInRange(time, rangeStart, rangeEnd);
+                    cell.selected = selectedDays.includes(time);
                     cells.push(cell);
                 }
 
@@ -45,26 +65,11 @@
                     `${prefixCls}-cell`,
                     {
                         [`${prefixCls}-cell-selected`]: cell.selected,
-                        [`${prefixCls}-cell-disabled`]: cell.disabled
+                        [`${prefixCls}-cell-disabled`]: cell.disabled,
+                        [`${prefixCls}-cell-range`]: cell.range && !cell.start && !cell.end
                     }
                 ];
             },
-            nextTenYear() {
-                this.$emit('on-pick', Number(this.year) + 10, false);
-            },
-            prevTenYear() {
-                this.$emit('on-pick', Number(this.year) - 10, false);
-            },
-            handleClick (event) {
-                const target = event.target;
-                if (target.tagName === 'EM') {
-                    const cell = this.cells[parseInt(event.target.getAttribute('index'))];
-                    if (cell.disabled) return;
-
-                    this.$emit('on-pick', cell.text);
-                }
-                this.$emit('on-pick-click');
-            }
         }
     };
 </script>

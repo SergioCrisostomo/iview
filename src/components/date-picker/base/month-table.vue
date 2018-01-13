@@ -13,6 +13,12 @@
         mixins: [ Locale, mixin ],
         props: {/* in mixin */},
         computed: {
+            classes() {
+                return [
+                    `${prefixCls}`,
+                    `${prefixCls}-month`
+                ];
+            },
             cells () {
                 let cells = [];
                 const cell_tmpl = {
@@ -21,15 +27,16 @@
                     disabled: false
                 };
 
+                const tableYear = this.tableDate.getFullYear();
+
                 for (let i = 0; i < 12; i++) {
                     const cell = deepCopy(cell_tmpl);
                     cell.text = i + 1;
 
-                    const date = new Date(this.date);
-                    date.setMonth(i);
-                    cell.disabled = typeof this.disabledDate === 'function' && this.disabledDate(date)  && this.selectionMode === 'month';
+                    const date = new Date(tableYear, i);
+                    cell.disabled = typeof this.disabledDate === 'function' && this.disabledDate(date) && this.selectionMode === 'month';
 
-                    cell.selected = Number(this.month) === i;
+                    cell.selected = this.value.find(date => date.getMonth() === i && date.getFullYear() === tableYear);
                     cells.push(cell);
                 }
 
@@ -58,7 +65,7 @@
                 this.$emit('on-pick-click');
             },
             tCell (cell) {
-                return this.t(`i.datepicker.months.m${cell}`);
+                return this.t(`i.datepicker.tableDate.getMonth()s.m${cell}`);
             }
         }
     };

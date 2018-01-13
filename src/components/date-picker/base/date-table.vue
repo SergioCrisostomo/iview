@@ -11,44 +11,19 @@
     </div>
 </template>
 <script>
-    import { getFirstDayOfMonth, getDayCountOfMonth } from '../util';
+    import { getFirstDayOfMonth, getDayCountOfMonth, clearHours, isInRange } from '../util';
     import { deepCopy } from '../../../utils/assist';
     import Locale from '../../../mixins/locale';
 
     import mixin from './mixin';
     import prefixCls from './prefixCls';
 
-    const clearHours = function (time) {
-        const cloneDate = new Date(time);
-        cloneDate.setHours(0, 0, 0, 0);
-        return cloneDate.getTime();
-    };
-
-    const isInRange = (time, a, b) => {
-        if (!a || !b) return false;
-        const [start, end] = [a, b].sort();
-        return time >= start && time <= end;
-    };
 
     export default {
         mixins: [ Locale, mixin ],
 
         props: {
             /* more props in mixin */
-            value: {
-                type: Array,
-                required: true
-            },
-            rangeState: {
-                type: Object,
-/*
-                default: () => ({
-                    from: null,
-                    to: null,
-                    selecting: false
-                })
-*/
-            },
         },
         data () {
             return {
@@ -61,11 +36,6 @@
             }
         },
         computed: {
-            dates(){
-                const {selectionMode, value, rangeState} = this;
-                const rangeSelecting = selectionMode === 'range' && rangeState.selecting;
-                return rangeSelecting ? [rangeState.from] : value;
-            },
             classes () {
                 return [
                     `${prefixCls}`
@@ -150,22 +120,6 @@
             }
         },
         methods: {
-            handleClick (cell) {
-
-                if (cell.disabled) return;
-                const newDate = cell.date;
-
-                this.$emit('on-pick', newDate);
-                this.$emit('on-pick-click');
-            },
-            handleMouseMove (cell) {
-                if (!this.rangeState.selecting) return;
-                if (cell.disabled) return;
-                const newDate = cell.date;
-                console.log('handleMouseMove', cell)
-
-                this.$emit('on-change-range', newDate);
-            },
             getCellCls (cell) {
                 return [
                     `${prefixCls}-cell`,

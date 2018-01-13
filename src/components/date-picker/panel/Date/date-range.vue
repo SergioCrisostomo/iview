@@ -32,7 +32,6 @@
                     :is="pickerTable"
                     ref="leftYearTable"
                     :table-date="leftPanelDate"
-                    range
                     selection-mode="range"
                     :disabled-date="disabledDate"
                     :range-state="rangeState"
@@ -175,6 +174,25 @@
             },
             isTime (val) {
                 if (val) this.$refs.timePicker.updateScroll();
+            },
+            currentView(currentView){
+                const leftYear = this.leftPanelDate.getFullYear();
+                const leftMonth = this.leftPanelDate.getMonth();
+
+                const rightYear = this.rightPanelDate.getFullYear();
+                const rightMonth = this.rightPanelDate.getMonth();
+
+                const isSameYear = leftYear === rightYear;
+
+                if (currentView === 'date' && isSameYear && leftMonth === rightMonth){
+                    this.changePanelDate('right', 'Month', 1);
+                }
+                if (currentView === 'month' && isSameYear && leftMonth === rightMonth){
+                    this.changePanelDate('right', 'Month', 1);
+                }
+                if (currentView === 'year' && isSameYear){
+                    this.changePanelDate('right', 'FullYear', 10);
+                }
             }
         },
         methods: {
@@ -274,6 +292,7 @@
                 this.currentView = 'month';
             },
             handleConfirm(visible) {
+                console.log('handleConfirm', this.dates);
                 this.$emit('on-pick', this.dates, visible);
             },
             handleRangePick (val) {
