@@ -111,7 +111,6 @@
                 const locale = this.t('i.locale');
                 const datePanelLabel = this.t('i.datepicker.datePanelLabel');
                 const date = this.panelDate;
-                console.log(formatDateLabels(locale, datePanelLabel, date), locale, datePanelLabel, date)
                 const { labels, separator } = formatDateLabels(locale, datePanelLabel, date);
 
                 const handler = type => {
