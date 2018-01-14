@@ -108,10 +108,10 @@
                 return this.currentView.match(/^time/) ? 'time-picker' : `${this.currentView}-table`;
             },
             datePanelLabel () {
-                if (!this.year) return null; // not ready yet
                 const locale = this.t('i.locale');
                 const datePanelLabel = this.t('i.datepicker.datePanelLabel');
                 const date = this.panelDate;
+                console.log(formatDateLabels(locale, datePanelLabel, date), locale, datePanelLabel, date)
                 const { labels, separator } = formatDateLabels(locale, datePanelLabel, date);
 
                 const handler = type => {
@@ -138,10 +138,10 @@
         },
         methods: {
             changeYear(dir){
-                this.panelDate = siblingMonth(this.date, dir * 12);
+                this.panelDate = siblingMonth(this.panelDate, dir * 12);
             },
             changeMonth(dir){
-                this.panelDate = siblingMonth(this.date, dir);
+                this.panelDate = siblingMonth(this.panelDate, dir);
             },
             handleToggleTime () {
                 const newView = this.currentView === 'date' ? 'time' : 'date';
