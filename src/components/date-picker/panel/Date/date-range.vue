@@ -126,8 +126,8 @@
             return {
                 prefixCls: prefixCls,
                 datePrefixCls: datePrefixCls,
-                dates: [minDate, maxDate],
-                rangeState: {from: minDate, to: maxDate, selecting: minDate && !maxDate},
+                dates: this.value,
+                rangeState: {from: this.value[0], to: this.value[1], selecting: minDate && !maxDate},
                 currentView: this.selectionMode || 'range',
                 leftPanelDate: minDate,
                 rightPanelDate: new Date(minDate.getFullYear(), minDate.getMonth() + 1, minDate.getDate())
