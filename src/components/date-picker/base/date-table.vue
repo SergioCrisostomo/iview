@@ -35,11 +35,6 @@
                 prefixCls: prefixCls,
             };
         },
-        watch: {
-            rangeState(val){
-                console.log('rangeState watcher in Date panel', JSON.stringify(val))
-            }
-        },
         computed: {
             classes () {
                 return [

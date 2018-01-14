@@ -17,9 +17,9 @@ export default {
         },
     },
     data(){
-      return {
+        return {
 
-      }
+        };
     },
     computed: {
         panel(){
@@ -32,7 +32,7 @@ export default {
                 ...this.disabledMinutes,
                 ...this.disabledSeconds,
                 ...this.hideDisabledOptions,
-            }
+            };
         }
     },
     created () {

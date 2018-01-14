@@ -1,6 +1,4 @@
 
-import prefixCls from './prefixCls';
-
 export default {
     props: {
         tableDate: {
@@ -47,9 +45,7 @@ export default {
             if (!this.rangeState.selecting) return;
             if (cell.disabled) return;
             const newDate = cell.date;
-            console.log('handleMouseMove', cell)
-
             this.$emit('on-change-range', newDate);
         },
     }
-}
+};

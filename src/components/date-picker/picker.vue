@@ -257,7 +257,7 @@
                 disableClickOutSide: false,    // fixed when click a date,trigger clickoutside to close picker
                 disableCloseUnderTransfer: false,  // transfer 模式下，点击Drop也会触发关闭,
                 selectionMode: this.onSelectionModeChange(this.type)
-            }
+            };
         },
         computed: {
             publicValue(){
@@ -400,15 +400,13 @@
 
         },
         watch: {
-            visible (val) {
-                if (val) {
-                    this.$refs.drop.update(); // ????????
-                } else {
+            visible (state) {
+                if (state === false){
                     this.$refs.drop.destroy();
                     const input = this.$el.querySelector('input');
                     if (input) input.blur();
                 }
-                this.$emit('on-open-change', val);
+                this.$emit('on-open-change', state);
             },
             value(val) {
                 const type = this.type;
@@ -431,9 +429,6 @@
             },
             open (val) {
                 this.visible = val === true;
-            },
-            internalValue(val){
-                console.log('internalValue???', val);
             },
             type(type){
                 this.onSelectionModeChange(type);

@@ -87,7 +87,6 @@
         },
         data () {
             const dates = this.value.sort();
-            console.log('selectionMode', this.selectionMode);
             return {
                 prefixCls: prefixCls,
                 datePrefixCls: datePrefixCls,
@@ -106,7 +105,6 @@
                 ];
             },
             pickerTable(){
-                console.log(this.currentView, typeof this.currentView);
                 return this.currentView.match(/^time/) ? 'time-picker' : `${this.currentView}-table`;
             },
             datePanelLabel () {
@@ -134,7 +132,6 @@
                 this.currentView = this.selectionMode;
             },
             currentView (val) {
-                console.log('chaning currentView to', val);
                 this.$emit('on-selection-mode-change', val);
                 if (val === 'time') this.$refs.pickerTable.updateScroll();
             }
@@ -150,12 +147,10 @@
                 const newView = this.currentView === 'date' ? 'time' : 'date';
                 this.currentView = newView;
             },
-            handlePick (value, close = true) {
-                const {selectionMode, dates} = this;
-                console.log('handle pick', value, close, selectionMode, dates);
-
+            handlePick (value) {
+                const {selectionMode} = this;
                 if (selectionMode === 'year') value = new Date(value, 0, 1);
-                else if (selectionMode === 'month') value = new Date(date.getFullYear(), value, 1);
+                else if (selectionMode === 'month') value = new Date(this.panelDate.getFullYear(), value, 1);
                 else value = new Date(value);
 
                 this.$emit('on-pick', value);

@@ -101,7 +101,7 @@
     import TimePicker from '../Time/time-range.vue';
     import Confirm from '../../base/confirm.vue';
 
-    import { toDate, prevMonth, nextMonth, initTimeDate, formatDateLabels } from '../../util';
+    import { toDate, initTimeDate, formatDateLabels } from '../../util';
     import datePanelLabel from './date-panel-label.vue';
 
     import Mixin from '../panel-mixin';
@@ -163,14 +163,8 @@
                     from: minDate,
                     to: maxDate,
                     selecting: false
-                }
+                };
                // if (this.showTime) this.$refs.timePicker.value = this.dates;
-            },
-            minDate (val) {
-               // if (this.showTime) this.$refs.timePicker.dates = val;
-            },
-            maxDate (val) {
-                //if (this.showTime) this.$refs.timePicker.dateEnd = val;
             },
             isTime (val) {
                 if (val) this.$refs.timePicker.updateScroll();
@@ -183,7 +177,6 @@
                 if (currentView === 'date' && isSameYear && leftMonth === rightMonth){
                     this.changePanelDate('right', 'Month', 1);
                 }
-                console.log(currentView, isSameYear);
                 if (currentView === 'month' && isSameYear){
                     this.changePanelDate('right', 'FullYear', 1);
                 }
@@ -279,7 +272,7 @@
                 this.currentView = 'date';
             },
             handleTimePick (date) {
-                this.dates = date
+                this.dates = date;
                 this.handleConfirm(false);
             }
         },
