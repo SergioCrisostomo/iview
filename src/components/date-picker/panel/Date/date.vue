@@ -122,6 +122,9 @@
                     labels: labels.map(obj => ((obj.handler = handler(obj.type)), obj))
                 };
             },
+            timeDisabled(){
+                return !this.dates[0];
+            }
         },
         watch: {
             value (newVal) {
