@@ -1,5 +1,5 @@
 <template>
-    <div :class="classes" @click="handleClick">
+    <div :class="classes">
         <span
             :class="getCellCls(cell)"
             v-for="cell in cells"
@@ -38,7 +38,8 @@
 
                 const tableYear = this.tableDate.getFullYear();
                 const rangeStart = this.rangeState.from && clearHours(new Date(this.rangeState.from.getFullYear(), this.rangeState.from.getMonth(), 1));
-                const rangeEnd = this.rangeState.to && clearHours(new Date(this.rangeState.to.getFullYear(), this.rangeState.from.getMonth(), 1));
+                const rangeEnd = this.rangeState.to && clearHours(new Date(this.rangeState.to.getFullYear(), this.rangeState.to.getMonth(), 1));
+                const selectedDays = this.dates.filter(Boolean).map(date => clearHours(new Date(date.getFullYear(), date.getMonth(), 1)));
 
                 for (let i = 0; i < 12; i++) {
                     const cell = deepCopy(cell_tmpl);
@@ -47,7 +48,7 @@
                     const time = clearHours(cell.date);
                     cell.range = isInRange(time, rangeStart, rangeEnd);
                     cell.disabled = typeof this.disabledDate === 'function' && this.disabledDate(cell.date) && this.selectionMode === 'month';
-                    cell.selected = this.value.find(date => date.getMonth() === i && date.getFullYear() === tableYear);
+                    cell.selected = selectedDays.includes(time);
                     cells.push(cell);
                 }
 

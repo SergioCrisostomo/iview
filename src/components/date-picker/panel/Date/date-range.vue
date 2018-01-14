@@ -289,7 +289,6 @@
                 this.currentView = 'month';
             },
             handleConfirm(visible) {
-                console.log('handleConfirm', this.dates);
                 this.$emit('on-pick', this.dates, visible);
             },
             handleRangePick (val) {

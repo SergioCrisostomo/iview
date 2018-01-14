@@ -5,8 +5,13 @@
                 {{day}}
             </span>
         </div>
-        <span :class="getCellCls(cell)" v-for="(cell, index) in readCells"  @mouseenter="handleMouseMove(cell)">
-            <em :index="index" @click="handleClick(cell)">{{ cell.text }}</em>
+        <span
+                :class="getCellCls(cell)"
+                v-for="cell in readCells"
+                @click="handleClick(cell)"
+                @mouseenter="handleMouseMove(cell)"
+        >
+            <em>{{ cell.text }}</em>
         </span>
     </div>
 </template>
@@ -56,7 +61,7 @@
                 const weekStartDay = Number(this.t('i.datepicker.weekStartDay'));
                 const day = (getFirstDayOfMonth(date) || 7) - weekStartDay; // day of first day
                 const today = clearHours(new Date());    // timestamp of today
-                const selectedDays = this.dates.map(clearHours);    // timestamp of selected days
+                const selectedDays = this.dates.filter(Boolean).map(clearHours);    // timestamp of selected days
                 const [minDay, maxDay] = this.dates.map(clearHours);
                 const rangeStart = this.rangeState.from && clearHours(this.rangeState.from);
                 const rangeEnd = this.rangeState.to && clearHours(this.rangeState.to);
