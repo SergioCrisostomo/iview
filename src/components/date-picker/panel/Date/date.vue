@@ -44,6 +44,7 @@
                     v-if="confirm"
                     :show-time="showTime"
                     :is-time="isTime"
+                    :value="dates"
                     :time-disabled="timeDisabled"
                     @on-pick-toggle-time="handleToggleTime"
                     @on-pick-clear="handlePickClear"
@@ -86,7 +87,7 @@
             // in the mixin
         },
         data () {
-            const dates = this.value.sort();
+            const dates = this.value.slice().sort();
             return {
                 prefixCls: prefixCls,
                 datePrefixCls: datePrefixCls,

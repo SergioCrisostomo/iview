@@ -16,11 +16,6 @@ export default {
             default: 'time'
         },
     },
-    data(){
-        return {
-
-        };
-    },
     computed: {
         panel(){
             const isRange =  this.type === 'timerange';
@@ -35,13 +30,4 @@ export default {
             };
         }
     },
-    created () {
-        if (!this.currentValue) {
-            if (this.type === 'timerange') {
-                this.currentValue = ['',''];
-            } else {
-                this.currentValue = '';
-            }
-        }
-    }
 };

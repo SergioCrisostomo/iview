@@ -80,6 +80,7 @@
                 <time-picker
                     ref="timePicker"
                     v-if="currentView === 'time'"
+                    :value="dates"
                     :format="format"
                     @on-pick="handleTimePick"
                     @on-pick-click="handlePickClick"></time-picker>

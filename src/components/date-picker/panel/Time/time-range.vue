@@ -10,9 +10,9 @@
                     ref="timeSpinner"
                     :steps="steps"
                     :show-seconds="showSeconds"
-                    :hours="hours"
-                    :minutes="minutes"
-                    :seconds="seconds"
+                    :hours="dateStart.getHours()"
+                    :minutes="dateStart.getMinutes()"
+                    :seconds="dateStart.getSeconds()"
                     :disabled-hours="disabledHours"
                     :disabled-minutes="disabledMinutes"
                     :disabled-seconds="disabledSeconds"
@@ -29,9 +29,9 @@
                     ref="timeSpinnerEnd"
                     :steps="steps"
                     :show-seconds="showSeconds"
-                    :hours="hoursEnd"
-                    :minutes="minutesEnd"
-                    :seconds="secondsEnd"
+                    :hours="dateEnd.getHours()"
+                    :minutes="dateEnd.getMinutes()"
+                    :seconds="dateEnd.getMinutes()"
                     :disabled-hours="disabledHours"
                     :disabled-minutes="disabledMinutes"
                     :disabled-seconds="disabledSeconds"
@@ -49,6 +49,8 @@
 <script>
     import TimeSpinner from '../../base/time-spinner.vue';
     import Confirm from '../../base/confirm.vue';
+    import Options from '../../time-mixins';
+
 
     import Mixin from '../panel-mixin';
     import Locale from '../../../../mixins/locale';
@@ -58,9 +60,11 @@
     const prefixCls = 'ivu-picker-panel';
     const timePrefixCls = 'ivu-time-picker';
 
+    const capitalize = (str) => str[0].toUpperCase() + str.slice(1);
+
     export default {
         name: 'RangeTimePickerPanel',
-        mixins: [ Mixin, Locale ],
+        mixins: [ Mixin, Locale, Options ],
         components: { TimeSpinner, Confirm },
         props: {
             steps: {
@@ -70,26 +74,20 @@
             format: {
                 type: String,
                 default: 'HH:mm:ss'
-            }
+            },
+            value: {
+                type: Array,
+                required: true
+            },
         },
         data () {
+            const [dateStart, dateEnd] = this.value.slice().sort();
             return {
                 prefixCls: prefixCls,
                 timePrefixCls: timePrefixCls,
                 showDate: false,
-                date: initTimeDate(),
-                dateEnd: initTimeDate(),
-                value: '',
-                hours: '',
-                minutes: '',
-                seconds: '',
-                hoursEnd: '',
-                minutesEnd: '',
-                secondsEnd: '',
-                disabledHours: [],
-                disabledMinutes: [],
-                disabledSeconds: [],
-                hideDisabledOptions: false,
+                dateStart: dateStart || initTimeDate(),
+                dateEnd: dateEnd || initTimeDate(),
                 confirm: false
             };
         },
@@ -114,28 +112,10 @@
             }
         },
         watch: {
-            value (newVal) {
-                if (!newVal) return;
-                if (Array.isArray(newVal)) {
-                    const valStart = newVal[0] ? toDate(newVal[0]) : false;
-                    const valEnd = newVal[1] ? toDate(newVal[1]) : false;
-
-                    if (valStart && valEnd) {
-                        this.handleChange(
-                            {
-                                hours: valStart.getHours(),
-                                minutes: valStart.getMinutes(),
-                                seconds: valStart.getSeconds()
-                            },
-                            {
-                                hours: valEnd.getHours(),
-                                minutes: valEnd.getMinutes(),
-                                seconds: valEnd.getSeconds()
-                            },
-                            false
-                        );
-                    }
-                }
+            value (dates) {
+                const [dateStart, dateEnd] = dates.slice().sort();
+                this.dateStart = dateStart || initTimeDate();
+                this.dateEnd = dateEnd || initTimeDate();
             }
         },
         methods: {
@@ -145,45 +125,26 @@
                 const { labels, separator } = formatDateLabels(locale, datePanelLabel, date || initTimeDate());
                 return [labels[0].label, separator, labels[1].label].join('');
             },
-            handleClear() {
-                this.date = initTimeDate();
-                this.dateEnd = initTimeDate();
-                this.hours = '';
-                this.minutes = '';
-                this.seconds = '';
-                this.hoursEnd = '';
-                this.minutesEnd = '';
-                this.secondsEnd = '';
-            },
-            handleChange (date, dateEnd, emit = true) {
+            handleChange (start, end, emit = true) {
 
+                console.log('****', start, end, emit)
+                const dateStart = new Date(this.dateStart);
+                const dateEnd = new Date(this.dateEnd);
                 const oldDateEnd = new Date(this.dateEnd);
 
-                if (date.hours !== undefined) {
-                    this.date.setHours(date.hours);
-                    this.hours = this.date.getHours();
-                }
-                if (date.minutes !== undefined) {
-                    this.date.setMinutes(date.minutes);
-                    this.minutes = this.date.getMinutes();
-                }
-                if (date.seconds !== undefined) {
-                    this.date.setSeconds(date.seconds);
-                    this.seconds = this.date.getSeconds();
-                }
-                if (dateEnd.hours !== undefined) {
-                    this.dateEnd.setHours(dateEnd.hours);
-                    this.hoursEnd = this.dateEnd.getHours();
-                }
-                if (dateEnd.minutes !== undefined) {
-                    this.dateEnd.setMinutes(dateEnd.minutes);
-                    this.minutesEnd = this.dateEnd.getMinutes();
-                }
-                if (dateEnd.seconds !== undefined) {
-                    this.dateEnd.setSeconds(dateEnd.seconds);
-                    this.secondsEnd = this.dateEnd.getSeconds();
-                }
+
+                // set dateStart
+                Object.keys(start).forEach(
+                    type => dateStart[`set${capitalize(type)}`](start[type])
+                );
+
+                // set dateEnd
+                Object.keys(end).forEach(
+                    type => dateEnd[`set${capitalize(type)}`](end[type])
+                );
+
                 // judge endTime > startTime?
+/*
                 if (this.dateEnd < this.date) {
                     this.$nextTick(() => {
                         this.dateEnd = new Date(this.date);
@@ -196,9 +157,9 @@
                             if (emit) this.$emit('on-pick', [this.date, this.dateEnd], true);
                         }
                     });
-                } else {
-                    if (emit) this.$emit('on-pick', [this.date, this.dateEnd], true);
                 }
+*/
+                if (emit) this.$emit('on-pick', [dateStart, dateEnd], true);
             },
             handleStartChange (date) {
                 this.handleChange(date, {});
