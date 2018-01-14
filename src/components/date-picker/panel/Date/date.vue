@@ -32,7 +32,7 @@
                     :is="pickerTable"
                     ref="pickerTable"
                     :table-date="panelDate"
-                    :value="date"
+                    :value="dates"
                     :selection-mode="selectionMode"
                     :disabled-date="disabledDate"
                     @on-pick="handlePick"
@@ -86,13 +86,14 @@
             // in the mixin
         },
         data () {
-            const date = this.value.sort()[0];
+            const dates = this.value.sort();
+            console.log('selectionMode', this.selectionMode);
             return {
                 prefixCls: prefixCls,
                 datePrefixCls: datePrefixCls,
                 currentView: this.selectionMode || 'date',
-                date: date || new Date(),
-                panelDate: date || new Date()
+                dates: dates,
+                panelDate: dates[0] || new Date()
             };
         },
         computed: {
@@ -104,20 +105,15 @@
                     }
                 ];
             },
-            month(){
-              return this.date.getMonth();
-            },
-            year(){
-                return this.date.getFullYear();
-            },
             pickerTable(){
-              return this.currentView.match(/^time/) ? 'time-picker' : `${this.currentView}-table`;
+                console.log(this.currentView, typeof this.currentView);
+                return this.currentView.match(/^time/) ? 'time-picker' : `${this.currentView}-table`;
             },
             datePanelLabel () {
                 if (!this.year) return null; // not ready yet
                 const locale = this.t('i.locale');
                 const datePanelLabel = this.t('i.datepicker.datePanelLabel');
-                const date = new Date(this.year, this.month);
+                const date = this.panelDate;
                 const { labels, separator } = formatDateLabels(locale, datePanelLabel, date);
 
                 const handler = type => {
@@ -132,12 +128,7 @@
         },
         watch: {
             value (newVal) {
-                let date = newVal && newVal[0];
-                if (!date) return;
-                date = new Date(date);
-                if (!isNaN(date)) {
-                    this.date = date;
-                }
+                this.dates = newVal;
             },
             selectionMode(){
                 this.currentView = this.selectionMode;
@@ -149,62 +140,25 @@
             }
         },
         methods: {
-            handleClear () {
-                this.date = new Date();
-                this.$emit('on-pick', '');
-                if (this.showTime) this.$refs.pickerTable.handleClear();
-            },
             changeYear(dir){
-                if (this.currentView === 'year') {
-                    this.$refs.pickerTable[dir == 1 ? 'nextTenYear' : 'prevTenYear']();
-                } else {
-                    this.date = siblingMonth(this.date, dir * 12);
-                }
+                this.panelDate = siblingMonth(this.date, dir * 12);
             },
             changeMonth(dir){
-                this.date = siblingMonth(this.date, dir);
+                this.panelDate = siblingMonth(this.date, dir);
             },
             handleToggleTime () {
                 const newView = this.currentView === 'date' ? 'time' : 'date';
                 this.currentView = newView;
             },
-/*
-            handleYearPick(year, close = true) {
-                this.year = year;
-                if (!close) return;
-
-                this.date.setFullYear(year);
-                if (this.selectionMode === 'year') {
-                    this.$emit('on-pick', new Date(year, 0, 1));
-                } else {
-                    this.currentView = 'month';
-                }
-
-                this.resetDate();
-            },
-            handleMonthPick (month) {
-                this.month = month;
-                this.date.setMonth(month);
-                if (this.selectionMode !== 'month') {
-                    this.currentView = 'date';
-                    this.resetDate();
-                } else {
-                    this.year && this.date.setFullYear(this.year);
-                    this.resetDate();
-                    const value = new Date(this.date.getFullYear(), month, 1);
-                    this.$emit('on-pick', value);
-                }
-            },
-*/
             handlePick (value, close = true) {
-                const {selectionMode, date} = this;
-                console.log('handle pick', value, close, selectionMode, date);
+                const {selectionMode, dates} = this;
+                console.log('handle pick', value, close, selectionMode, dates);
 
                 if (selectionMode === 'year') value = new Date(value, 0, 1);
                 else if (selectionMode === 'month') value = new Date(date.getFullYear(), value, 1);
+                else value = new Date(value);
 
-                this.date = new Date(value);
-                this.$emit('on-pick', new Date(value.getTime()));
+                this.$emit('on-pick', value);
 
             },
         },

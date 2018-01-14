@@ -126,7 +126,7 @@
                 datePrefixCls: datePrefixCls,
                 dates: [minDate, maxDate],
                 rangeState: {from: minDate, to: maxDate, selecting: minDate && !maxDate},
-                currentView: this.selectionMode,
+                currentView: this.selectionMode || 'range',
                 leftPanelDate: minDate,
                 rightPanelDate: new Date(minDate.getFullYear(), minDate.getMonth() + 1, minDate.getDate())
             };
@@ -209,18 +209,6 @@
                     labels: labels.map(obj => ((obj.handler = handler(obj.type)), obj))
                 };
             },
-            resetDate(){
-                this.dates = this.dates.map(date => new Date(date));
-            },
-            handleClear() {
-                this.dates = this.dates.map(() => new Date());
-                this.rangeState = {};
-                this.handleConfirm();
-              //  if (this.showTime) this.$refs.timePicker.handleClear();
-            },
-            resetView(reset = false) {
-                this.currentView = 'date';
-            },
             prevYear (direction) {
                 this.changePanelDate(direction, 'FullYear', -1);
             },
@@ -259,37 +247,11 @@
 
                 this[`${direction}CurrentView`] = 'month';
             },
-            handleLeftMonthPick (month) {
-                this.handleMonthPick(month, 'left');
-            },
-            handleRightMonthPick (month) {
-                this.handleMonthPick(month, 'right');
-            },
-            handleMonthPick (month, direction) {
-                let year = this[`${direction}TableYear`];
-                if (direction === 'right') {
-                    if (month === 0) {
-                        month = 11;
-                        year--;
-                    } else {
-                        month--;
-                    }
-                }
-
-                const index = direction === 'left' ? 0 : 1;
-                this.dates[index].setYear(year);
-                this.dates[index].setMonth(month);
-                this[`${direction}CurrentView`] = 'date';
-                this.resetDate();
-            },
             showYearPicker () {
                 this.currentView = 'year';
             },
             showMonthPicker () {
                 this.currentView = 'month';
-            },
-            handleConfirm(visible) {
-                this.$emit('on-pick', this.dates, visible);
             },
             handleRangePick (val) {
                 if (this.rangeState.selecting){

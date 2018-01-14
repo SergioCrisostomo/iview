@@ -383,7 +383,12 @@
                 return isRange ? val : [val];
             },
             onPick(dates, visible = false) {
-                this.internalValue = dates;
+                if (this.type === 'multiple'){
+                    this.internalValue = [...this.internalValue, dates]; // TODO: filter multiple date duplicates
+                } else {
+                    this.internalValue = Array.isArray(dates) ? dates : [dates];
+                }
+
                 this.onSelectionModeChange(this.type); // reset the selectionMode
                 if (!this.isConfirm) this.visible = visible;
                 this.emitChange();

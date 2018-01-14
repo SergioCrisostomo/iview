@@ -20,13 +20,11 @@ export default {
         },
         rangeState: {
             type: Object,
-            /*
-                default: () => ({
-                    from: null,
-                    to: null,
-                    selecting: false
-                })
-            */
+            default: () => ({
+                from: null,
+                to: null,
+                selecting: false
+            })
         },
 
     },
