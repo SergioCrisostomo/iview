@@ -142,10 +142,6 @@
             changeMonth(dir){
                 this.panelDate = siblingMonth(this.panelDate, dir);
             },
-            handleToggleTime () {
-                const newView = this.currentView === 'date' ? 'time' : 'date';
-                this.currentView = newView;
-            },
             handlePick (value) {
                 const {selectionMode} = this;
                 if (selectionMode === 'year') value = new Date(value, 0, 1);

@@ -31,6 +31,7 @@
                 <component
                     :is="pickerTable"
                     ref="leftYearTable"
+                    v-if="currentView !== 'time'"
                     :table-date="leftPanelDate"
                     selection-mode="range"
                     :disabled-date="disabledDate"
@@ -65,6 +66,7 @@
                 <component
                     :is="pickerTable"
                     ref="rightYearTable"
+                    v-if="currentView !== 'time'"
                     :table-date="rightPanelDate"
                     selection-mode="range"
                     :range-state="rangeState"
@@ -77,7 +79,7 @@
             <div :class="[prefixCls + '-content']" v-show="isTime">
                 <time-picker
                     ref="timePicker"
-                    v-show="isTime"
+                    v-if="currentView === 'time'"
                     :format="format"
                     @on-pick="handleTimePick"
                     @on-pick-click="handlePickClick"></time-picker>
@@ -167,7 +169,7 @@
                // if (this.showTime) this.$refs.timePicker.value = this.dates;
             },
             isTime (val) {
-                if (val) this.$refs.timePicker.updateScroll();
+                //if (val) this.$refs.timePicker.updateScroll();
             },
             currentView(currentView){
                 const leftMonth = this.leftPanelDate.getMonth();
@@ -267,9 +269,6 @@
             },
             handleChangeRange (val) {
                 this.rangeState.to = val;
-            },
-            handleToggleTime(){
-                this.currentView = 'date';
             },
             handleTimePick (date) {
                 this.dates = date;
