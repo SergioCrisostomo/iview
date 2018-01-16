@@ -265,7 +265,6 @@
         },
         computed: {
             publicValue(){
-                console.log('publicValue')
                 const isRange = this.type.includes('range');
                 return isRange ? this.formatDate(this.internalValue) : this.formatDate(this.internalValue[0]);
             },
@@ -327,7 +326,6 @@
                 this.visible = false;
             },
             handleInputChange (event) {
-                console.log('handleInputChange', event)
                 const oldValue = this.visualValue;
                 const newValue = event.target.value;
 
@@ -353,8 +351,6 @@
                 }
             },
             handleClear () {
-                console.log('handleClear')
-
                 this.visible = false;
                 this.internalValue = this.internalValue.map(() => null);
                 this.$emit('on-clear');
@@ -373,7 +369,6 @@
                 });
             },
             formatDate (val) {
-                console.log('formatDate')
                 const isRange = this.type.includes('range');
 
                 const type = this.type;
@@ -398,7 +393,6 @@
             },
             onPick(dates, visible = false) {
 
-                console.log('onPick', dates);
                 if (this.type === 'multiple'){
                     this.internalValue = [...this.internalValue, dates]; // TODO: filter multiple date duplicates
                 } else {
@@ -416,10 +410,6 @@
 
         },
         watch: {
-            internalValue(val){
-                console.log('internalValue watcher', JSON.stringify(val));
-            },
-
             visible (state) {
                 if (state === false){
                     this.$refs.drop.destroy();
@@ -429,7 +419,6 @@
                 this.$emit('on-open-change', state);
             },
             value(val) {
-                console.log('PICKER value watcher', val)
                 const type = this.type;
                 const parser = (
                     TYPE_VALUE_RESOLVER_MAP[type] ||

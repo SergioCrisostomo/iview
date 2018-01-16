@@ -113,7 +113,6 @@
         },
         watch: {
             value (dates) {
-                console.log('time-range watcher', JSON.stringify(dates));
                 const [dateStart, dateEnd] = dates.slice();
                 this.dateStart = dateStart || initTimeDate();
                 this.dateEnd = dateEnd || initTimeDate();
@@ -128,39 +127,22 @@
             },
             handleChange (start, end, emit = true) {
 
-                console.log('****', start, end, emit)
                 const dateStart = new Date(this.dateStart);
-                const dateEnd = new Date(this.dateEnd);
-                const oldDateEnd = new Date(this.dateEnd);
+                let dateEnd = new Date(this.dateEnd);
 
-                console.log(JSON.stringify(start), JSON.stringify(end));
                 // set dateStart
                 Object.keys(start).forEach(type => {
-                    console.log(type, `set${capitalize(type)}`, start[type]);
                     dateStart[`set${capitalize(type)}`](start[type])
                 });
 
                 // set dateEnd
-                Object.keys(end).forEach(
-                    type => dateEnd[`set${capitalize(type)}`](end[type])
-                );
+                Object.keys(end).forEach(type => {
+                    dateEnd[`set${capitalize(type)}`](end[type]);
+                });
 
                 // judge endTime > startTime?
-/*
-                if (this.dateEnd < this.date) {
-                    this.$nextTick(() => {
-                        this.dateEnd = new Date(this.date);
-                        this.hoursEnd = this.dateEnd.getHours();
-                        this.minutesEnd = this.dateEnd.getMinutes();
-                        this.secondsEnd = this.dateEnd.getSeconds();
+                if (dateEnd < dateStart) dateEnd = dateStart;
 
-                        const format = 'yyyy-MM-dd HH:mm:ss';
-                        if (formatDate(oldDateEnd, format) !== formatDate(this.dateEnd, format)) {
-                            if (emit) this.$emit('on-pick', [this.date, this.dateEnd], true);
-                        }
-                    });
-                }
-*/
                 if (emit) this.$emit('on-pick', [dateStart, dateEnd], true);
             },
             handleStartChange (date) {

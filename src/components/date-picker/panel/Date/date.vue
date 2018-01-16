@@ -140,7 +140,6 @@
             },
             currentView (val) {
                 this.$emit('on-selection-mode-change', val);
-                // if (val === 'time') this.$refs.pickerTable.updateScroll();
             }
         },
         methods: {
@@ -151,27 +150,13 @@
                 this.panelDate = siblingMonth(this.panelDate, dir);
             },
             handlePick (value) {
-                console.log('handlePick Date', value);
                 const {selectionMode} = this;
                 if (selectionMode === 'year') value = new Date(value, 0, 1);
                 else if (selectionMode === 'month') value = new Date(this.panelDate.getFullYear(), value, 1);
                 else value = new Date(value);
 
                 this.$emit('on-pick', value);
-
             },
         },
-        mounted () {
-            if (this.showTime) {
-                // todo 这里可能有问题，并不能进入到这里，但不影响正常使用
-
-/*
-                TODO (pickerTable ?)
-                this.$refs.timePicker.date = this.date;
-                this.$refs.timePicker.value = this.value;
-                this.$refs.timePicker.showDate = true;
-*/
-            }
-        }
     };
 </script>

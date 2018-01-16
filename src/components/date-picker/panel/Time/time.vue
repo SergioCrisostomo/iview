@@ -94,13 +94,8 @@
                     type => newDate[`set${capitalize(type)}`](date[type])
                 );
 
-                console.log('handleChange in picker', newDate, emit);
                 if (emit) this.$emit('on-pick', newDate, true);
             },
-            updateScroll () {
-                console.log('update scroll!!')
-                // this.$refs.timeSpinner.updateScroll();
-            }
         },
         mounted () {
             if (this.$parent && this.$parent.$options.name === 'DatePicker') this.showDate = true;
