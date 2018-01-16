@@ -172,10 +172,6 @@
                     to: maxDate,
                     selecting: false
                 };
-               // if (this.showTime) this.$refs.timePicker.value = this.dates;
-            },
-            isTime (val) {
-                //if (val) this.$refs.timePicker.updateScroll();
             },
             currentView(currentView){
                 const leftMonth = this.leftPanelDate.getMonth();

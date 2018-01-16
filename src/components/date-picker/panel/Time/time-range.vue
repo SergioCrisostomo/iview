@@ -55,7 +55,7 @@
     import Mixin from '../panel-mixin';
     import Locale from '../../../../mixins/locale';
 
-    import { initTimeDate, toDate, formatDate, formatDateLabels } from '../../util';
+    import { initTimeDate, formatDateLabels } from '../../util';
 
     const prefixCls = 'ivu-picker-panel';
     const timePrefixCls = 'ivu-time-picker';
