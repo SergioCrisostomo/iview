@@ -154,32 +154,33 @@
     <div>
         <div style="width: 50%; float: left;">
 <!--
-
             <Date-picker type="date" placeholder="选择日期和时间" style="width: 200px"></Date-picker> | Single date, no date
             <br>
+-->
             <Date-picker type="datetime" placeholder="选择日期和时间" style="width: 200px"></Date-picker> | Single datetime, no date
             <br>
+<!--
             <Date-picker type="datetime" v-model="dateString" placeholder="选择日期和时间" style="width: 200px"></Date-picker> | Single datetime, string date
             <br>
             <Date-picker type="datetime" v-model="singleDate" placeholder="选择日期和时间" style="width: 200px"></Date-picker> | Single datetime, date object
             <br>
             <Date-picker type="datetime" format="yyyy-MM-dd HH:mm" placeholder="选择日期和时间（不含秒）" style="width: 200px"></Date-picker> | Single datetime, format yyyy-MM-dd HH:mm
             <br>
-            <Date-picker type="date" format="yyyy-MM-dd HH:mm" placeholder="选择日期和时间（不含秒）" style="width: 200px"></Date-picker> | Single date, multiple
+            <Date-picker type="date" multiple style="width: 200px"></Date-picker> | Single date, multiple
             <br>
--->
+            <Date-picker type="date" format="yyyy-MM-dd HH:mm" placeholder="选择日期和时间（不含秒）" style="width: 200px"></Date-picker> | Single date, format MM-dd HH:mm
+            <br>
         </div>
         <div style="width: 50%; float: right;">
-            <!--
-                        <Date-picker type="datetimerange" :value="dateRange" placeholder="选择日期和时间" style="width: 300px"></Date-picker> | DateTimeRange, date objects
-                        <br>
-                        <Date-picker type="daterange" placeholder="选择日期和时间" style="width: 300px"></Date-picker> | Range, no dates
-                        <br>
-            -->
+            <Date-picker type="datetimerange" :value="dateRange" placeholder="选择日期和时间" style="width: 300px"></Date-picker> | DateTimeRange, date objects
+            <br>
+            <Date-picker type="daterange" placeholder="选择日期和时间" style="width: 300px"></Date-picker> | Range, no dates
+            <br>
             <Date-picker type="datetimerange" format="yyyy-MM-dd HH:mm" placeholder="选择日期和时间（不含秒）" style="width: 300px"></Date-picker> | DateTimeRange, format yyyy-MM-dd HH:mm
         </div>
         <div style="width: 50%; float: right;">
             <TimePicker type="timerange" placeholder="Select time" style="width: 168px"></TimePicker>
+-->
         </div>
     </div>
 </template>

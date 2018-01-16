@@ -20,7 +20,7 @@ export default {
         selectionMode: {
             type: String,
             validator (value) {
-                return oneOf(value, ['year', 'month', 'date']);
+                return oneOf(value, ['year', 'month', 'date', 'time']);
             },
             default: 'date'
         },

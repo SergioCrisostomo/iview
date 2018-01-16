@@ -31,6 +31,7 @@
                 <component
                     :is="pickerTable"
                     ref="pickerTable"
+                    v-if="currentView !== 'time'"
                     :table-date="panelDate"
                     :value="dates"
                     :selection-mode="selectionMode"
@@ -41,14 +42,17 @@
             </div>
             <div :class="[prefixCls + '-content']" v-show="isTime">
                 <time-picker
-                    v-if="confirm"
-                    :show-time="showTime"
-                    :is-time="isTime"
+                    ref="timePicker"
+                    v-if="currentView === 'time'"
                     :value="dates"
+                    :format="format"
                     :time-disabled="timeDisabled"
-                    @on-pick-toggle-time="handleToggleTime"
+                    @on-pick="handlePick"
+                    @on-pick-click="handlePickClick"
                     @on-pick-clear="handlePickClear"
-                    @on-pick-success="handlePickSuccess"></time-picker>
+                    @on-pick-success="handlePickSuccess"
+                    @on-pick-toggle-time="handleToggleTime"
+                ></time-picker>
             </div>
             <Confirm
                 v-if="confirm"
@@ -136,7 +140,7 @@
             },
             currentView (val) {
                 this.$emit('on-selection-mode-change', val);
-                if (val === 'time') this.$refs.pickerTable.updateScroll();
+                // if (val === 'time') this.$refs.pickerTable.updateScroll();
             }
         },
         methods: {
@@ -147,6 +151,7 @@
                 this.panelDate = siblingMonth(this.panelDate, dir);
             },
             handlePick (value) {
+                console.log('handlePick Date', value);
                 const {selectionMode} = this;
                 if (selectionMode === 'year') value = new Date(value, 0, 1);
                 else if (selectionMode === 'month') value = new Date(this.panelDate.getFullYear(), value, 1);

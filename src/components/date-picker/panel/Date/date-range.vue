@@ -82,8 +82,13 @@
                     v-if="currentView === 'time'"
                     :value="dates"
                     :format="format"
-                    @on-pick="handleTimePick"
-                    @on-pick-click="handlePickClick"></time-picker>
+                    :time-disabled="timeDisabled"
+                    @on-pick="handleRangePick"
+                    @on-pick-click="handlePickClick"
+                    @on-pick-clear="handlePickClear"
+                    @on-pick-success="handlePickSuccess"
+                    @on-pick-toggle-time="handleToggleTime"
+                ></time-picker>
             </div>
             <Confirm
                 v-if="confirm"
@@ -231,18 +236,6 @@
                     this.changePanelDate(otherPanel, type, -1);
                 }
             },
-            handleLeftYearPick (year, close = true) {
-                this.handleYearPick(year, close, 'left');
-            },
-            handleRightYearPick (year, close = true) {
-                this.handleYearPick(year, close, 'right');
-            },
-            handleYearPick (year, close, direction) {
-                this[`${direction}TableYear`] = year;
-                if (!close) return;
-
-                this[`${direction}CurrentView`] = 'month';
-            },
             showYearPicker () {
                 this.currentView = 'year';
             },
@@ -271,10 +264,6 @@
             handleChangeRange (val) {
                 this.rangeState.to = val;
             },
-            handleTimePick (date) {
-                this.dates = date;
-                this.handleConfirm(false);
-            }
         },
         mounted(){
             if (this.showTime) {

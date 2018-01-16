@@ -3,6 +3,7 @@
         <div :class="[prefixCls + '-body']">
             <div :class="[timePrefixCls + '-header']" v-if="showDate">{{ visibleDate }}</div>
             <div :class="[prefixCls + '-content']">
+                Time spinner??
                 <time-spinner
                     ref="timeSpinner"
                     :show-seconds="showSeconds"
@@ -89,16 +90,17 @@
         methods: {
             handleChange (date, emit = true) {
 
-                const newDate = new Date(date);
+                const newDate = new Date(this.date);
                 Object.keys(date).forEach(
                     type => newDate[`set${capitalize(type)}`](date[type])
                 );
 
+                console.log('handleChange in picker', newDate, emit);
                 if (emit) this.$emit('on-pick', newDate, true);
             },
             updateScroll () {
                 console.log('update scroll!!')
-                this.$refs.timeSpinner.updateScroll();
+                // this.$refs.timeSpinner.updateScroll();
             }
         },
         mounted () {

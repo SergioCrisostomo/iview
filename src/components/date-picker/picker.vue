@@ -296,6 +296,7 @@
         },
         methods: {
             onSelectionModeChange(type){
+
                 if (type.match(/^date/)) type = 'date';
                 this.selectionMode = type;
                 return type;
@@ -396,7 +397,7 @@
                     this.internalValue = Array.isArray(dates) ? dates : [dates];
                 }
 
-                this.onSelectionModeChange(this.type); // reset the selectionMode
+                if (!this.isConfirm) this.onSelectionModeChange(this.type); // reset the selectionMode
                 if (!this.isConfirm) this.visible = visible;
                 this.emitChange();
             },
