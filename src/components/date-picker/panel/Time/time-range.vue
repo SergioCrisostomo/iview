@@ -31,7 +31,7 @@
                     :show-seconds="showSeconds"
                     :hours="dateEnd.getHours()"
                     :minutes="dateEnd.getMinutes()"
-                    :seconds="dateEnd.getMinutes()"
+                    :seconds="dateEnd.getSeconds()"
                     :disabled-hours="disabledHours"
                     :disabled-minutes="disabledMinutes"
                     :disabled-seconds="disabledSeconds"
@@ -81,7 +81,7 @@
             },
         },
         data () {
-            const [dateStart, dateEnd] = this.value.slice().sort();
+            const [dateStart, dateEnd] = this.value.slice();
             return {
                 prefixCls: prefixCls,
                 timePrefixCls: timePrefixCls,
@@ -113,7 +113,8 @@
         },
         watch: {
             value (dates) {
-                const [dateStart, dateEnd] = dates.slice().sort();
+                console.log('time-range watcher', JSON.stringify(dates));
+                const [dateStart, dateEnd] = dates.slice();
                 this.dateStart = dateStart || initTimeDate();
                 this.dateEnd = dateEnd || initTimeDate();
             }
@@ -132,11 +133,12 @@
                 const dateEnd = new Date(this.dateEnd);
                 const oldDateEnd = new Date(this.dateEnd);
 
-
+                console.log(JSON.stringify(start), JSON.stringify(end));
                 // set dateStart
-                Object.keys(start).forEach(
-                    type => dateStart[`set${capitalize(type)}`](start[type])
-                );
+                Object.keys(start).forEach(type => {
+                    console.log(type, `set${capitalize(type)}`, start[type]);
+                    dateStart[`set${capitalize(type)}`](start[type])
+                });
 
                 // set dateEnd
                 Object.keys(end).forEach(
