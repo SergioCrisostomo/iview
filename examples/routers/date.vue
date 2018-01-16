@@ -153,13 +153,10 @@
 <template>
     <div>
         <div style="width: 50%; float: left;">
-<!--
             <Date-picker type="date" placeholder="选择日期和时间" style="width: 200px"></Date-picker> | Single date, no date
             <br>
--->
             <Date-picker type="datetime" placeholder="选择日期和时间" style="width: 200px"></Date-picker> | Single datetime, no date
             <br>
-<!--
             <Date-picker type="datetime" v-model="dateString" placeholder="选择日期和时间" style="width: 200px"></Date-picker> | Single datetime, string date
             <br>
             <Date-picker type="datetime" v-model="singleDate" placeholder="选择日期和时间" style="width: 200px"></Date-picker> | Single datetime, date object
@@ -180,7 +177,6 @@
         </div>
         <div style="width: 50%; float: right;">
             <TimePicker type="timerange" placeholder="Select time" style="width: 168px"></TimePicker>
--->
         </div>
     </div>
 </template>

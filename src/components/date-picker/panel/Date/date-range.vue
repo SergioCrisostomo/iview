@@ -243,15 +243,22 @@
                 this.currentView = 'month';
             },
             handleRangePick (val) {
-                if (this.rangeState.selecting){
+
+                console.log('handleRangePick', val, this.rangeState.selecting, this.currentView);
+                if (this.rangeState.selecting || this.currentView === 'time'){
                     const [minDate, maxDate] = [this.rangeState.from, val].sort((a, b) => a - b);
 
+                    console.log('Setting new date <<<<<');
                     this.dates = [minDate, maxDate];
-                    this.rangeState = {
-                        from: minDate,
-                        to: maxDate,
-                        selecting: false
-                    };
+                    if (this.currentView === 'time'){
+                        this.dates = val;
+                    } else {
+                        this.rangeState = {
+                            from: minDate,
+                            to: maxDate,
+                            selecting: false
+                        };
+                    }
                     this.handleConfirm(false);
                 } else {
                     this.rangeState = {

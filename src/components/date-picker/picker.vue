@@ -200,6 +200,10 @@
                 type: Boolean,
                 default: null
             },
+            multiple: {
+                type: Boolean,
+                default: false
+            },
             size: {
                 validator (value) {
                     return oneOf(value, ['small', 'large', 'default']);
@@ -353,10 +357,14 @@
 
                 this.visible = false;
                 this.internalValue = this.internalValue.map(() => null);
-
                 this.$emit('on-clear');
                 this.dispatch('FormItem', 'on-form-change', '');
                 this.emitChange();
+
+                setTimeout(
+                    () => this.onSelectionModeChange(this.type),
+                    500 // delay to improve dropdown close visual effect
+                );
             },
             emitChange () {
                 this.$emit('on-change', this.publicValue);

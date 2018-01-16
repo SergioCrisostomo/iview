@@ -3,7 +3,6 @@
         <div :class="[prefixCls + '-body']">
             <div :class="[timePrefixCls + '-header']" v-if="showDate">{{ visibleDate }}</div>
             <div :class="[prefixCls + '-content']">
-                Time spinner??
                 <time-spinner
                     ref="timeSpinner"
                     :show-seconds="showSeconds"
