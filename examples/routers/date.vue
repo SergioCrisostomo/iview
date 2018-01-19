@@ -171,7 +171,20 @@
             <br>
             <Date-picker type="datetime" :start-date="minDate" v-model="singleDate" placeholder="选择日期和时间" style="width: 200px"></Date-picker> | Single datetime, date object, start date
             <br>
-
+            <date-picker
+                    :open="open"
+                    :value="value3"
+                    confirm
+                    type="date"
+                    @on-change="handleChange"
+                    @on-clear="handleClear"
+                    @on-ok="handleOk">
+                <a href="javascript:void(0)" @click="handleClick">
+                    <icon type="ios-calendar-outline"></icon>
+                    <template v-if="value3 === ''">Select date</template>
+                    <template v-else>{{ value3 }}</template>
+                </a>
+            </date-picker>
         </div>
         <div style="width: 50%; float: right;">
             <Date-picker type="datetimerange" :value="dateRange" placeholder="选择日期和时间" style="width: 300px"></Date-picker> | DateTimeRange, date objects
@@ -197,7 +210,24 @@
                 singleDate: new Date(1978, 4, 10),
                 dateRange: [new Date(2010, 4, 1), new Date()],
                 minDate: new Date(2010, 4, 1),
-                maxDate: new Date(now + oneMonth)
+                maxDate: new Date(now + oneMonth),
+                open: false,
+                value3: ''
+            }
+        },
+        methods: {
+            handleClick () {
+                this.open = !this.open;
+            },
+            handleChange (date) {
+                console.log('demo change', date);
+                this.value3 = date;
+            },
+            handleClear () {
+                this.open = false;
+            },
+            handleOk () {
+                this.open = false;
             }
         }
     }
