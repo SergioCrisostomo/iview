@@ -1,93 +1,144 @@
 <template>
-    <li :class="classes" @click.stop="select" @mouseout.stop="blur" v-show="!hidden"><slot>{{ showLabel }}</slot></li>
+    <li
+        v-show="!hidden"
+        :class="optionClasses"
+        @click.stop="select"
+        @mouseout.stop="blur"
+    >
+        <slot>{{showLabel}}</slot>
+    </li>
 </template>
-<script>
-    import Emitter from '../../mixins/emitter';
-    import { findComponentUpward } from '../../utils/assist';
 
-    const prefixCls = 'ivu-select-item';
+<script>
+    import regexpEscape from 'regexp.escape';
+    import SELECT_NAME from './selectName';
+    import OPTION_NAME from './optionName';
+    import PREFIXCLS from './prefixCls';
+    import Emitter from '@/mixins/emitter';
+    import {
+        APPEND,
+        DISABLED,
+        EMPTY_STRING,
+        FOCUS,
+        ITEM,
+        REMOVE,
+        SELECTED,
+    } from '@/utils/constants';
+    import {
+        STRING_NUMBER_LIST,
+    } from '@/utils/enums';
+    import {
+        findComponentUpward,
+        kebabJoin,
+    } from '@/utils/assist';
+    import {
+        EVENT_ON_QUERY_CHANGE,
+        EVENT_ON_SELECT_CLOSE,
+        EVENT_ON_SELECT_SELECTED,
+    } from '@/utils/eventNames';
+
+    const prefixCls = kebabJoin(PREFIXCLS, ITEM);
 
     export default {
-        name: 'iOption',
-        componentName: 'select-item',
-        mixins: [ Emitter ],
+        name: OPTION_NAME,
+
+        mixins: [Emitter],
+
         props: {
-            value: {
-                type: [String, Number],
-                required: true
+            disabled: {
+                default: false,
+                type: Boolean,
             },
             label: {
-                type: [String, Number]
+                default: undefined,
+                type: STRING_NUMBER_LIST,
             },
-            disabled: {
-                type: Boolean,
-                default: false
-            }
+            value: {
+                required: true,
+                type: STRING_NUMBER_LIST,
+            },
         },
-        data () {
+
+        data(){
             return {
-                selected: false,
-                index: 0,    // for up and down to focus
+                autoComplete: false,
+                hidden: false, // for search
+                index: 0, // for up and down to focus
                 isFocus: false,
-                hidden: false,    // for search
-                searchLabel: '',    // the value is slot,only for search
-                autoComplete: false
+                searchLabel: EMPTY_STRING, // the value is slot,only for search
+                selected: false,
             };
         },
+
         computed: {
-            classes () {
+            optionClasses(){
                 return [
-                    `${prefixCls}`,
+                    prefixCls,
                     {
-                        [`${prefixCls}-disabled`]: this.disabled,
-                        [`${prefixCls}-selected`]: this.selected && !this.autoComplete,
-                        [`${prefixCls}-focus`]: this.isFocus
-                    }
+                        [kebabJoin(prefixCls, DISABLED)]: this.disabled,
+                        [kebabJoin(prefixCls, FOCUS)]: this.isFocus,
+                        [kebabJoin(prefixCls, SELECTED)]: this.selected && !this.autoComplete,
+                    },
                 ];
             },
-            showLabel () {
-                return (this.label) ? this.label : this.value;
+
+            showLabel(){
+                return this.label || this.value;
+            },
+        },
+
+        mounted(){
+            this.updateSearchLabel();
+            this.dispatch(SELECT_NAME, APPEND);
+            this.$on(EVENT_ON_SELECT_CLOSE, this.onSelectClose);
+            this.$on(EVENT_ON_QUERY_CHANGE, this.onQueryChange);
+
+            const Select = findComponentUpward(this, SELECT_NAME);
+
+            if (Select) {
+                this.autoComplete = Select.autoComplete;
             }
         },
-        methods: {
-            select () {
-                if (this.disabled) {
-                    return false;
-                }
 
-                this.dispatch('iSelect', 'on-select-selected', this.value);
-            },
-            blur () {
+        beforeDestroy(){
+            this.dispatch(SELECT_NAME, REMOVE);
+            this.$off(EVENT_ON_SELECT_CLOSE, this.onSelectClose);
+            this.$off(EVENT_ON_QUERY_CHANGE, this.onQueryChange);
+        },
+
+        methods: {
+            blur(){
                 this.isFocus = false;
             },
-            queryChange (val) {
-                const parsedQuery = val.replace(/(\^|\(|\)|\[|\]|\$|\*|\+|\.|\?|\\|\{|\}|\|)/g, '\\$1');
-                this.hidden = !new RegExp(parsedQuery, 'i').test(this.searchLabel);
+
+            onQueryChange(val){
+                this.queryChange(val);
             },
-            // 在使用函数防抖后，设置 key 后，不更新组件了，导致SearchLabel 不更新 #1865
-            updateSearchLabel () {
-                this.searchLabel = this.$el.textContent;
-            },
+
             onSelectClose(){
                 this.isFocus = false;
             },
-            onQueryChange(val){
-                this.queryChange(val);
-            }
-        },
-        mounted () {
-            this.updateSearchLabel();
-            this.dispatch('iSelect', 'append');
-            this.$on('on-select-close', this.onSelectClose);
-            this.$on('on-query-change',this.onQueryChange);
 
-            const Select = findComponentUpward(this, 'iSelect');
-            if (Select) this.autoComplete = Select.autoComplete;
+            queryChange(val){
+                const parsedQuery = regexpEscape(val);
+                const rx = new RegExp(parsedQuery, 'i');
+
+                this.hidden = !rx.test(this.searchLabel);
+            },
+
+            select(){
+                if (this.disabled) {
+                    return;
+                }
+
+                this.dispatch(SELECT_NAME, EVENT_ON_SELECT_SELECTED, this.value);
+            },
+
+            // 在使用函数防抖后，设置 key 后，不更新组件了，导致SearchLabel 不更新 #1865
+            updateSearchLabel(){
+                this.searchLabel = this.$el.textContent;
+            },
+
         },
-        beforeDestroy () {
-            this.dispatch('iSelect', 'remove');
-            this.$off('on-select-close', this.onSelectClose);
-            this.$off('on-query-change',this.onQueryChange);
-        }
     };
 </script>

@@ -1,65 +1,101 @@
 <template>
-    <div class="ivu-select-dropdown" :class="className" :style="styles"><slot></slot></div>
+    <div
+        :class="dropdownClasses"
+        :style="styles"
+    >
+        <slot></slot>
+    </div>
 </template>
+
 <script>
     import Vue from 'vue';
+    import Popper from 'popper.js';
+    import SELECT_NAME from './selectName';
+    import DROPDOWN_NAME from './dropdownName';
+    import PREFIXCLS from './prefixCls';
+    import {
+        getPlacement,
+    } from './utils';
+    import {
+        BODY,
+        BOTTOM,
+        DROPDOWN,
+        EMPTY_STRING,
+        START,
+        WIDTH,
+    } from '@/utils/constants';
+    import {
+        getStyle,
+        kebabJoin,
+    } from '@/utils/assist';
+    import {
+        EVENT_ON_DESTROY_POPPER,
+        EVENT_ON_UPDATE_POPPER,
+    } from '@/utils/eventNames';
+
     const isServer = Vue.prototype.$isServer;
-    import { getStyle } from '../../utils/assist';
-    const Popper = isServer ? function() {} : require('popper.js');  // eslint-disable-line
+    const prefixCls = kebabJoin(PREFIXCLS, DROPDOWN);
 
     export default {
-        name: 'Drop',
+        name: DROPDOWN_NAME,
+
         props: {
-            placement: {
-                type: String,
-                default: 'bottom-start'
-            },
             className: {
-                type: String
-            }
+                default: undefined,
+                type: String,
+            },
+            placement: {
+                default: kebabJoin(BOTTOM, START),
+                type: String,
+            },
         },
-        data () {
+
+        data(){
             return {
                 popper: null,
-                width: ''
+                width: EMPTY_STRING,
             };
         },
+
         computed: {
-            styles () {
-                let style = {};
-                if (this.width) style.width = `${this.width}px`;
-                return style;
+            dropdownClasses(){
+                const className = this.className ? this.className.trim() : this.className;
+
+                return [
+                    prefixCls,
+                    {
+                        [className]: !!className,
+                    },
+                ];
+            },
+
+            styles(){
+                if (this.width) {
+                    return {
+                        width: `${this.width}px`,
+                    };
+                }
+
+                return {};
+            },
+        },
+
+        created(){
+            this.$on(EVENT_ON_UPDATE_POPPER, this.update);
+            this.$on(EVENT_ON_DESTROY_POPPER, this.destroy);
+        },
+
+        beforeDestroy(){
+            if (this.popper) {
+                this.popper.destroy();
             }
         },
+
         methods: {
-            update () {
-                if (isServer) return;
-                if (this.popper) {
-                    this.$nextTick(() => {
-                        this.popper.update();
-                    });
-                } else {
-                    this.$nextTick(() => {
-                        this.popper = new Popper(this.$parent.$refs.reference, this.$el, {
-                            gpuAcceleration: false,
-                            placement: this.placement,
-                            boundariesPadding: 0,
-                            forceAbsolute: true,
-                            boundariesElement: 'body'
-                        });
-                        this.popper.onCreate(popper => {
-                            this.resetTransformOrigin(popper);
-                        });
-                    });
-                }
-                // set a height for parent is Modal and Select's width is 100%
-                if (this.$parent.$options.name === 'iSelect') {
-                    this.width = parseInt(getStyle(this.$parent.$el, 'width'));
-                }
-            },
-            destroy () {
+            destroy(){
                 if (this.popper) {
                     this.resetTransformOrigin(this.popper);
+
                     setTimeout(() => {
                         if (this.popper) {
                             this.popper.destroy();
@@ -68,21 +104,44 @@
                     }, 300);
                 }
             },
-            resetTransformOrigin(popper) {
-                let placementMap = {top: 'bottom', bottom: 'top'};
-                let placement = popper._popper.getAttribute('x-placement').split('-')[0];
-                let origin = placementMap[placement];
-                popper._popper.style.transformOrigin = `center ${ origin }`;
-            }
+
+            resetTransformOrigin({_popper}){
+                const placement = _popper.getAttribute('x-placement').split('-').shift();
+
+                _popper.style.transformOrigin = `center ${getPlacement(placement)}`;
+            },
+
+            update(){
+                if (isServer) {
+                    return;
+                }
+
+                if (this.popper) {
+                    this.$nextTick(() => {
+                        this.popper.update();
+                    });
+                } else if (!isServer) {
+                    this.$nextTick(() => {
+                        this.popper = new Popper(this.$parent.$refs.reference, this.$el, {
+                            boundariesElement: BODY,
+                            boundariesPadding: 0,
+                            forceAbsolute: true,
+                            gpuAcceleration: false,
+                            onCreate(data){
+                                return this.resetTransformOrigin(data);
+                            },
+                            placement: this.placement,
+                        });
+                    });
+                }
+
+                // set a height for parent is Modal and Select's width is 100%
+                if (this.$parent.$options.name === SELECT_NAME) {
+                    const width = getStyle(this.$parent.$el, WIDTH);
+
+                    this.width = Number.parseInt(width, 10);
+                }
+            },
         },
-        created () {
-            this.$on('on-update-popper', this.update);
-            this.$on('on-destroy-popper', this.destroy);
-        },
-        beforeDestroy () {
-            if (this.popper) {
-                this.popper.destroy();
-            }
-        }
     };
 </script>
