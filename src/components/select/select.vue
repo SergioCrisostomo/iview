@@ -621,7 +621,7 @@
             this.$on(EVENT_ON_SELECT_SELECTED, (value) => {
                 if (this.model === value) {
                     if (this.autoComplete) {
-                        this.$emit(ON_CHANGE, value);
+                        this.$emit(EVENT_ON_CHANGE, value);
                     }
 
                     this.hideMenu();
@@ -943,8 +943,12 @@
                     return;
                 }
 
-                if (this.clearable) {
-                    this.clearSingleSelect();
+                if (this.multiple) {
+                    this.model.pop();
+                } else {
+                    if (this.clearable) {
+                        this.clearSingleSelect();
+                    }
                 }
             },
 
