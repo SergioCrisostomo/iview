@@ -621,7 +621,7 @@
             this.$on(EVENT_ON_SELECT_SELECTED, (value) => {
                 if (this.model === value) {
                     if (this.autoComplete) {
-                        this.$emit(EVENT_ON_CHANGE, value);
+                        this.$emit(ON_CHANGE, value);
                     }
 
                     this.hideMenu();
@@ -840,9 +840,11 @@
                 }
             },
 
-            onClickOutside(){
+            onClickOutside(e){
                 if (this.visible) {
+                    e.stopPropagation();
                     this.hideMenu();
+                    this.focusElement();
                 }
             },
 
@@ -941,12 +943,8 @@
                     return;
                 }
 
-                if (this.multiple) {
-                    this.model.pop();
-                } else {
-                    if (this.clearable) {
-                        this.clearSingleSelect();
-                    }
+                if (this.clearable) {
+                    this.clearSingleSelect();
                 }
             },
 
