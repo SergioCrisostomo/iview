@@ -554,10 +554,11 @@
             visible(val){
                 if (val) {
                     if (this.filterable) {
+                        const {input} = this.$refs;
                         if (this.multiple) {
-                            this.$refs.input.focus();
+                            input.focus();
                         } else if (!this.autoComplete) {
-                            this.$refs.input.select();
+                            input.select();
                         }
 
                         if (this.remote) {
@@ -574,6 +575,8 @@
                                 }
                             }
                         }
+                        const length = input.value.length;
+                        input.setSelectionRange(length, length);
                     }
 
                     this.broadcast(DROPDOWN_NAME, EVENT_ON_UPDATE_POPPER);
