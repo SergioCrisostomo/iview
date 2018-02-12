@@ -941,8 +941,12 @@
                     return;
                 }
 
-                if (this.clearable) {
-                    this.clearSingleSelect();
+                if (this.multiple) {
+                    this.model.pop();
+                } else {
+                    if (this.clearable) {
+                        this.clearSingleSelect();
+                    }
                 }
             },
 
