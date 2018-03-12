@@ -1,0 +1,199 @@
+<template>
+    <div @click="onHeaderClick">
+        <div class="ivu-tag ivu-tag-checked" v-for="item in selectedMultiple">
+            <span class="ivu-tag-text">{{ item.label }}</span>
+            <Icon type="ios-close-empty" @click.native.stop="removeTag(item)"></Icon>
+        </div>
+        <span
+            :class="singleDisplayClasses"
+            v-show="singleDisplayValue"
+        >{{ singleDisplayValue }}</span>
+        <input
+            :id="inputElementId"
+            type="text"
+            v-if="filterable"
+            v-model="query"
+            :disabled="disabled"
+            :class="[prefixCls + '-input']"
+            :placeholder="showPlaceholder ? localePlaceholder : ''"
+            :style="inputStyle"
+            autocomplete="off"
+            spellcheck="false"
+            @blur="handleBlur"
+            @keydown="resetInputState"
+            @keydown.delete="handleInputDelete"
+
+            ref="input">
+        <Icon type="ios-close" :class="[prefixCls + '-arrow']" v-if="resetSelect" @click.native.stop="resetSelect"></Icon>
+        <Icon type="arrow-down-b" :class="[prefixCls + '-arrow']" v-if="!resetSelect && !remote"></Icon>
+    </div>
+</template>
+<script>
+    import Icon from '../icon';
+    import Emitter from '../../mixins/emitter';
+    import Locale from '../../mixins/locale';
+
+    const prefixCls = 'ivu-select';
+
+    export default {
+        name: 'iSelectHead',
+        mixins: [ Emitter, Locale ],
+        components: { Icon },
+        props: {
+            disabled: {
+                type: Boolean,
+                default: false
+            },
+            filterable: {
+                type: Boolean,
+                default: false
+            },
+            multiple: {
+                type: Boolean,
+                default: false
+            },
+            remote: {
+                type: Boolean,
+                default: false
+            },
+            initialLabel: {
+                type: String,
+            },
+            values: {
+                type: Array,
+                default: () => []
+            },
+            clearable: {
+                type: [Function, Boolean],
+                default: false,
+            },
+            inputElementId: {
+                type: String
+            }
+
+        },
+        data () {
+            return {
+                prefixCls: prefixCls,
+                visible: false,
+                options: [],
+                optionInstances: [],
+                focusIndex: 0,
+                query: '',
+                lastQuery: '',
+                inputLength: 20,
+                notFound: false,
+                slotChangeDuration: false,    // if slot change duration and in multiple, set true and after slot change, set false
+                model: this.value,
+                remoteInitialLabel: this.initialLabel,
+                showCloseIcon: false,
+                preventRemoteCall: false,
+            };
+        },
+        computed: {
+            singleDisplayClasses(){
+                const {filterable, multiple, showPlaceholder} = this;
+                return [{
+                    [prefixCls + '-placeholder']: showPlaceholder && !filterable,
+                    [prefixCls + '-selected-value']: !showPlaceholder && !multiple && !filterable,
+                }]
+            },
+            singleDisplayValue(){
+                if (this.multiple || this.filterable) return '';
+                return `${this.selectedSingle}` || this.localePlaceholder;
+            },
+            showPlaceholder () {
+                let status = false;
+                if (!this.multiple) {
+                    const value = this.values[0];
+                    if (typeof value === 'undefined' || String(value).trim() === ''){
+                        status = !this.remoteInitialLabel;
+                    }
+                } else {
+                    if (!this.values.length > 0) {
+                        status = true;
+                    }
+                }
+                return status;
+            },
+            resetSelect(){
+                return !this.showPlaceholder && this.clearable;
+            },
+            inputStyle () {
+                let style = {};
+
+                if (this.multiple) {
+                    if (this.showPlaceholder) {
+                        style.width = '100%';
+                    } else {
+                        style.width = `${this.inputLength}px`;
+                    }
+                }
+
+                return style;
+            },
+            localePlaceholder () {
+                if (this.placeholder === undefined) {
+                    return this.t('i.select.placeholder');
+                } else {
+                    return this.placeholder;
+                }
+            },
+            selectedSingle(){
+                const selected = this.values[0];
+                return selected ? selected.label : (this.remoteInitialLabel || '');
+            },
+            selectedMultiple(){
+                return this.multiple ? this.values : [];
+            }
+        },
+        methods: {
+            removeTag (value) {
+                if (this.disabled) return false;
+                this.dispatch('iSelect', 'on-select-selected', value);
+            },
+            handleBlur () {
+                console.log('input blur event fired');
+            },
+            resetInputState () {
+                this.inputLength = this.$refs.input.value.length * 12 + 20;
+            },
+            handleInputDelete () {
+                if (this.multiple && this.selectedMultiple.length && this.query === '') {
+                    this.removeTag(this.selectedMultiple[this.selectedMultiple.length - 1]);
+                }
+            },
+            onHeaderClick(e){
+                if (this.filterable && e.target === this.$el){
+                    this.$refs.input.focus();
+                }
+            }
+        },
+        watch: {
+            values ([value]) {
+                if (!this.filterable) return;
+                this.preventRemoteCall = true;
+                if (this.multiple){
+                    this.query = '';
+                    return;
+                }
+                // #982
+                if (value === '' || value === null) this.query = '';
+                else this.query = value.label;
+            },
+            query (val) {
+                if (this.preventRemoteCall) {
+                    this.preventRemoteCall = false;
+                    return;
+                }
+
+
+                if (this.remote && this.remoteMethod) {
+                    this.remoteMethod(val);
+                }
+                this.$emit('on-query-change', val);
+
+            }
+        }
+    };
+</script>
