@@ -355,9 +355,9 @@
             v-model="model6"
             style="width:200px"
         >
-            <i-option value="beijing">New York</i-option>
-            <i-option value="shanghai" disabled>London</i-option>
-            <i-option value="shenzhen">Sydney</i-option>
+            <i-option value="new-york">New York</i-option>
+            <i-option value="london" disabled>London</i-option>
+            <i-option value="sydney">Sydney</i-option>
         </i-select>
         <br>
         <i-select

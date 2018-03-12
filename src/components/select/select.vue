@@ -345,12 +345,11 @@
                 this.toggleMenu(null, false);
             },
             onClickOutside(event){
-
                 if (this.visible) {
                     event.stopPropagation();
                     event.preventDefault();
                     this.hideMenu();
-                   // this.toggleHeaderFocus({type: 'focus'})
+                    this.isFocused = true;
                 } else {
                     this.isFocused = false;
                 }
@@ -395,6 +394,25 @@
                 if (index < 0) index = optionsLength;
                 if (index > optionsLength) index = 0;
 
+                // find nearest option in case of disabled options in between
+                if (direction > 0){
+                    let nearestActiveOption = -1;
+                    for (let i = 0; i < this.flatOptions.length; i++){
+                        const optionIsActive = !this.flatOptions[i].componentInstance.disabled;
+                        if (optionIsActive) nearestActiveOption = i;
+                        if (nearestActiveOption >= index) break;
+                    }
+                    index = nearestActiveOption;
+                } else {
+                    let nearestActiveOption = this.flatOptions.length;
+                    for (let i = optionsLength; i >= 0; i--){
+                        const optionIsActive = !this.flatOptions[i].componentInstance.disabled;
+                        if (optionIsActive) nearestActiveOption = i;
+                        if (nearestActiveOption <= index) break;
+                    }
+                    index = nearestActiveOption;
+                }
+
                 this.focusIndex = index;
             },
             onOptionClick(option) {
@@ -424,13 +442,7 @@
                 if (this.disabled) {
                     return;
                 }
-
                 this.isFocused = type === 'focus';
-                const {selectHead, reference} = this.$refs;
-
-                const el = this.filterable ? selectHead.$el.querySelector('input') : reference;
-
-                el[this.isFocused ? 'focus' : 'blur']();
             },
 
         },
@@ -459,6 +471,12 @@
                     this.slotOptions = this.$slots.default || [];
                 }
             },
+            isFocused(){
+                const {selectHead, reference} = this.$refs;
+                const el = this.filterable ? selectHead.$el.querySelector('input') : reference;
+                el[this.isFocused ? 'focus' : 'blur']();
+
+            }
         }
     };
 </script>
