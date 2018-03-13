@@ -24,6 +24,7 @@ describe('Select.vue', () => {
       });
       vm.$nextTick(() => {
         const placeholderSpan = vm.$el.querySelector('.ivu-select-placeholder');
+        console.log(placeholderSpan.textContent, placeholder, '>>>><<<<<');
         expect(placeholderSpan.textContent).to.equal(placeholder);
         expect(placeholderSpan.style.display).to.not.equal('none');
 

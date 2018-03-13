@@ -68,7 +68,10 @@
             },
             inputElementId: {
                 type: String
-            }
+            },
+            placeholder: {
+                type: String
+            },
 
         },
         data () {

@@ -33,6 +33,7 @@
                     :remote="remote"
                     :input-element-id="elementId"
                     :initial-label="initialLabel"
+                    :placeholder="placeholder"
 
                     @on-query-change="onQueryChange"
 

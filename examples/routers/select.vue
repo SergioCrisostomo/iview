@@ -299,6 +299,7 @@
         <i-select
             v-model="model1"
             style="width:200px"
+            :placeholder="'Hello world!'"
         >
             <i-option
                 v-for="item in cityList"
