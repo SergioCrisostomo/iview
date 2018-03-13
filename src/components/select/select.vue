@@ -449,7 +449,7 @@
                 this.query = query.toLowerCase().trim();
                 if (this.query.length > 0) this.visible = true;
             },
-            toggleHeaderFocus({target, type}){
+            toggleHeaderFocus({type}){
                 if (this.disabled) {
                     return;
                 }

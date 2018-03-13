@@ -13,7 +13,7 @@
         render(h, {props}){
             return props.options;
         }
-    }
+    };
 </script>
 
 <style>

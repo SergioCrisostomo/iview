@@ -56,7 +56,7 @@
                 return (this.label) ? this.label : this.value;
             },
             optionLabel(){
-                return (this.$el && this.$el.textContent) || this.label
+                return (this.$el && this.$el.textContent) || this.label;
             }
         },
         methods: {
@@ -70,7 +70,7 @@
                 this.$emit('on-select-selected', {
                     value: this.value,
                     label: this.optionLabel,
-                })
+                });
             },
             blur () {
                 this.isFocus = false;

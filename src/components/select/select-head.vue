@@ -74,18 +74,9 @@
         data () {
             return {
                 prefixCls: prefixCls,
-                visible: false,
-                options: [],
-                optionInstances: [],
-                focusIndex: 0,
                 query: '',
-                lastQuery: '',
                 inputLength: 20,
-                notFound: false,
-                slotChangeDuration: false,    // if slot change duration and in multiple, set true and after slot change, set false
-                model: this.value,
                 remoteInitialLabel: this.initialLabel,
-                showCloseIcon: false,
                 preventRemoteCall: false,
             };
         },
@@ -95,7 +86,7 @@
                 return [{
                     [prefixCls + '-placeholder']: showPlaceholder && !filterable,
                     [prefixCls + '-selected-value']: !showPlaceholder && !multiple && !filterable,
-                }]
+                }];
             },
             singleDisplayValue(){
                 if (this.multiple || this.filterable) return '';
@@ -184,9 +175,6 @@
                     return;
                 }
 
-                if (this.remote && this.remoteMethod) {
-                    this.remoteMethod(val);
-                }
                 this.$emit('on-query-change', val);
             }
         }
