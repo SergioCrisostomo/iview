@@ -174,21 +174,18 @@
             }
         },
         data () {
-            const {label, multiple, value, $slots} = this;
-            let initialValue = Array.isArray(value) ? value : [value];
-            if (!multiple && (typeof initialValue[0] === 'undefined' || String(initialValue[0]).trim() === '')) initialValue = [];
 
             return {
                 prefixCls: prefixCls,
-                values: initialValue,
+                values: this.getInitialValue(),
                 dropDownWidth: 0,
                 visible: false,
                 focusIndex: -1,
                 isFocused: false,
                 query: '',
-                initialLabel: label,
+                initialLabel: this.label,
                 hasMouseHoverHead: false,
-                slotOptions: $slots.default,
+                slotOptions: this.$slots.default,
                 caretPosition: -1,
             };
         },
@@ -256,6 +253,7 @@
                 return selectOptions.length === 0 && (!remote || (remote && !loading));
             },
             publicValue(){
+              // labelInValue?
                 return this.multiple ? this.values.map(option => option.value) : (this.values[0] || {}).value;
             },
             canBeCleared(){
@@ -316,6 +314,12 @@
             }
         },
         methods: {
+          getInitialValue(){
+            const {label, multiple, value, $slots} = this;
+            let initialValue = Array.isArray(value) ? value : [value];
+            if (!multiple && (typeof initialValue[0] === 'undefined' || String(initialValue[0]).trim() === '')) initialValue = [];
+            return initialValue;
+          },
             processOption(option, values, isFocused){
                 if (!option.componentOptions) return option;
                 const optionValue = option.componentOptions.propsData.value;
@@ -477,11 +481,18 @@
             }
         },
         watch: {
+          value(){
+            this.values = this.getInitialValue();
+          },
             values(now, before){
                 const newValue = JSON.stringify(now);
                 const oldValue = JSON.stringify(before);
                 const shouldEmitInput = newValue !== oldValue;
-                if (shouldEmitInput) this.$emit('input', this.publicValue); // to update v-model
+                if (shouldEmitInput) {
+                  this.$emit('input', this.publicValue); // to update v-model
+                  this.$emit('input', this.publicValue); // to update v-model
+                  ökjg
+                }
             },
             query (query) {
                 this.$emit('on-query-change', query);

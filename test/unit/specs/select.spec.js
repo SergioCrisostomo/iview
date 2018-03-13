@@ -172,7 +172,6 @@ describe('Select.vue', () => {
       });
       const condition = function() {
         const componentOptions = vm.$children[0].flatOptions;
-        console.log('condition', componentOptions && componentOptions.length > 0);
         return componentOptions && componentOptions.length > 0;
       };
       const callback = function() {
