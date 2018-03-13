@@ -176,6 +176,7 @@
                 initialLabel: label,
                 hasMouseHoverHead: false,
                 slotOptions: $slots.default || [],
+                caretPosition: -1,
             };
         },
         computed: {
@@ -346,11 +347,22 @@
             },
             onClickOutside(event){
                 if (this.visible) {
+
+                    if (this.filterable) {
+                        const input = this.$refs.selectHead.$refs.input;
+                        this.caretPosition = input.selectionStart;
+                        this.$nextTick(() => {
+                            const caretPosition = this.caretPosition === -1 ? input.value.length : this.caretPosition;
+                            input.setSelectionRange(caretPosition, caretPosition);
+                        });
+                    }
+
                     event.stopPropagation();
                     event.preventDefault();
                     this.hideMenu();
                     this.isFocused = true;
                 } else {
+                    this.caretPosition = -1;
                     this.isFocused = false;
                 }
             },
