@@ -19,7 +19,6 @@
             :style="inputStyle"
             autocomplete="off"
             spellcheck="false"
-            @blur="handleBlur"
             @keydown="resetInputState"
             @keydown.delete="handleInputDelete"
 
@@ -152,9 +151,6 @@
                 if (this.disabled) return false;
                 this.dispatch('iSelect', 'on-select-selected', value);
             },
-            handleBlur () {
-                console.log('input blur event fired');
-            },
             resetInputState () {
                 this.inputLength = this.$refs.input.value.length * 12 + 20;
             },
@@ -188,12 +184,10 @@
                     return;
                 }
 
-
                 if (this.remote && this.remoteMethod) {
                     this.remoteMethod(val);
                 }
                 this.$emit('on-query-change', val);
-
             }
         }
     };

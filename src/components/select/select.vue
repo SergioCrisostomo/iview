@@ -387,7 +387,6 @@
                     }
                     // enter
                     if (e.key === 'Enter') {
-                        // TODO
                         const focusedOption = this.flatOptions[this.focusIndex];
                         if (focusedOption){
                             focusedOption.componentInstance.select();
@@ -487,7 +486,6 @@
                 const {selectHead, reference} = this.$refs;
                 const el = this.filterable ? selectHead.$el.querySelector('input') : reference;
                 el[this.isFocused ? 'focus' : 'blur']();
-
             }
         }
     };
