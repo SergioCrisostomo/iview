@@ -14,6 +14,7 @@
             @keydown.down="handleKeydown"
             @keydown.left="handleKeydown"
             @keydown.right="handleKeydown"
+            @keydown.tab="handleKeydown"
 
             @mouseenter="hasMouseHoverHead = true"
             @mouseleave="hasMouseHoverHead = false"
@@ -372,6 +373,9 @@
             handleKeydown (e) {
                 if (this.visible) {
                     e.preventDefault();
+                    if (e.key === 'Tab'){
+                        e.stopPropagation();
+                    }
 
                     // Esc slide-up
                     if (e.key === 'Escape') {
@@ -393,7 +397,8 @@
                         }
                     }
                 } else {
-                    if (e.key !== 'Escape') this.toggleMenu();
+                    const keysThatCanOpenSelect = ['ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight'];
+                    if (keysThatCanOpenSelect.includes(e.key)) this.toggleMenu(null, true);
                 }
 
 
