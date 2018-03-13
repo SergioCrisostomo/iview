@@ -159,13 +159,22 @@
         },
         mounted(){
             this.$on('on-select-selected', this.onOptionClick);
+
+            // set the initial values if there are any
+            if (this.values.length > 0 && !this.remote){
+                this.values = this.values.map(value => {
+                    const option = this.flatOptions.find(({componentOptions}) => componentOptions.propsData.value === value);
+                    return {
+                        value: value,
+                        label: option.componentInstance.optionLabel
+                    };
+                });
+            }
         },
         data () {
             const {label, multiple, value, $slots} = this;
             let initialValue = Array.isArray(value) ? value : [value];
             if (!multiple && (typeof initialValue[0] === 'undefined' || String(initialValue[0]).trim() === '')) initialValue = [];
-
-
 
             return {
                 prefixCls: prefixCls,

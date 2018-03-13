@@ -24,11 +24,8 @@ describe('Select.vue', () => {
       });
       vm.$nextTick(() => {
         const placeholderSpan = vm.$el.querySelector('.ivu-select-placeholder');
-        console.log(placeholderSpan.textContent, placeholder, '>>>><<<<<');
         expect(placeholderSpan.textContent).to.equal(placeholder);
         expect(placeholderSpan.style.display).to.not.equal('none');
-
-        expect(vm.$children[0].showPlaceholder).to.equal(true);
         done();
       });
     });
@@ -47,12 +44,15 @@ describe('Select.vue', () => {
           };
         }
       });
-      vm.$nextTick(() => {
+        waitForIt(
+            () => vm.$el.querySelector('.ivu-select-selected-value'),
+            () => {
+                console.log('passed!');
         const selectedValueSpan = vm.$el.querySelector('.ivu-select-selected-value');
         expect(selectedValueSpan.textContent).to.equal('Bar');
         expect(selectedValueSpan.style.display).to.not.equal('none');
         expect(vm.$children[0].selectedSingle).to.equal('Bar');
-        expect(vm.$children[0].model).to.equal(2);
+        expect(vm.$children[0].values[0]).to.equal(2);
         done();
       });
     });

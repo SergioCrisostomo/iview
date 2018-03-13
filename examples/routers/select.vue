@@ -553,7 +553,7 @@
                         label: 'Canberra',
                     },
                 ],
-                model1: '',
+                model1: 'New York',
                 model2: '',
                 model3: '',
                 model4: '',
