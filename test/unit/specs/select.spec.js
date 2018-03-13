@@ -171,12 +171,11 @@ describe('Select.vue', () => {
         }
       });
       const condition = function() {
-        return vm.$children[0].options.length > 0;
+        const componentOptions = vm.$children[0].flatOptions;
+        console.log('condition', componentOptions && componentOptions.length > 0);
+        return componentOptions && componentOptions.length > 0;
       };
       const callback = function() {
-        if (vm.$children[0].options == 0) return setTimeout(waitForIt.bind(null, done), 50);
-        expect(JSON.stringify(vm.$children[0].options)).to.equal(JSON.stringify(laterOptions));
-
         const renderedOptions = vm.$el.querySelectorAll('.ivu-select-dropdown-list li');
         expect(renderedOptions.length).to.equal(laterOptions.length);
 
