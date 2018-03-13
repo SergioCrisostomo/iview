@@ -51,12 +51,14 @@
             >
                 <div class="ivu-select-dropdown" :class="dropdownCls" :style="dropDownStyles">
                     <ul v-show="showNotFoundLabel" :class="[prefixCls + '-not-found']"><li>{{ localeNotFoundText }}</li></ul>
-                    <functional-options
-                        v-if="(!remote) || (remote && !loading)"
-                        :ulClass="[prefixCls + '-dropdown-list']"
-                        :options="selectOptions"
-                    >
-                    </functional-options>
+                    <ul :class="prefixCls + '-dropdown-list'">
+                      <functional-options
+                          v-if="(!remote) || (remote && !loading)"
+                          :options="selectOptions"
+                          :slot-update-hook="updateSlotOptions"
+                          :slot-options="slotOptions"
+                      ></functional-options>
+                    </ul>
                     <ul v-show="loading" :class="[prefixCls + '-loading']">{{ localeLoadingText }}</ul>
                 </div>
             </Dropdown>
@@ -186,7 +188,7 @@
                 query: '',
                 initialLabel: label,
                 hasMouseHoverHead: false,
-                slotOptions: $slots.default || [],
+                slotOptions: $slots.default,
                 caretPosition: -1,
             };
         },
@@ -266,7 +268,7 @@
                 let optionCounter = -1;
                 const currentIndex = this.focusIndex;
                 const selectedValues = this.values.map(({value}) => value);
-                for (let option of this.slotOptions) {
+                for (let option of (this.slotOptions || [])) {
 
                     if (!option.componentOptions) continue;
 
@@ -470,7 +472,9 @@
                 }
                 this.isFocused = type === 'focus';
             },
-
+            updateSlotOptions(){
+                this.slotOptions = this.$slots.default;
+            }
         },
         watch: {
             values(now, before){
@@ -494,7 +498,7 @@
             },
             loading(state){
                 if (state === false){
-                    this.slotOptions = this.$slots.default || [];
+                    this.updateSlotOptions();
                 }
             },
             isFocused(){

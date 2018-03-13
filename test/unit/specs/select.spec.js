@@ -151,7 +151,7 @@ describe('Select.vue', () => {
       });
     });
 
-    xit('should set new options', done => {
+    it('should set new options', done => {
       const laterOptions = [{value: 1, label: 'Foo'}, {value: 2, label: 'Bar'}];
 
       vm = createVue({
@@ -220,7 +220,6 @@ describe('Select.vue', () => {
         }
       });
       const [SelectA, SelectB] = vm.$children;
-      console.log('SelectA, SelectB', SelectA.toggleMenu, SelectB.toggleMenu);
       SelectA.toggleMenu(null, true);
       SelectB.toggleMenu(null, true);
 
@@ -228,7 +227,6 @@ describe('Select.vue', () => {
         const condition = function() {
           const optionsA = SelectA.$el.querySelectorAll('.ivu-select-item');
           const optionsB = SelectB.$el.querySelectorAll('.ivu-select-item');
-          console.log(optionsA.length, optionsB.length, SelectA.visible, SelectB.visible, SelectA.$children);
           return optionsA.length > 0 && optionsB.length > 0;
         };
         waitForIt(condition, resolve);
@@ -271,7 +269,7 @@ describe('Select.vue', () => {
   });
 
   describe('Performance tests', () => {
-    xit('should handle big numbers of options', done => {
+    it('should handle big numbers of options', done => {
       const manyLaterOptions = Array.apply(null, Array(200)).map((_, i) => {
         return {
           value: i + 1,
@@ -296,7 +294,8 @@ describe('Select.vue', () => {
         }
       });
       const condition = function() {
-        return vm.$children[0].options.length == manyLaterOptions.length;
+        const componentOptions = vm.$children[0].flatOptions;
+        return componentOptions && componentOptions.length === manyLaterOptions.length;
       };
       const callback = function() {
         const end = +new Date();
