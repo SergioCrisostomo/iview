@@ -46,7 +46,8 @@
     "js-calendar": "^1.2.3",
     "lodash.throttle": "^4.1.1",
     "popper.js": "^0.6.4",
-    "tinycolor2": "^1.4.1"
+    "tinycolor2": "^1.4.1",
+    "v-click-outside-x": "^2.4.0"
   },
   "peerDependencies": {
     "vue": "^2.5.2"
