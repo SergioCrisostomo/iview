@@ -1,0 +1,71 @@
+import Emitter from '../../mixins/emitter';
+import {getTouches} from './utils';
+
+export default {
+    mixins: [Emitter],
+
+    props: {
+        tabbable: {
+            type: Boolean,
+            required: true,
+        },
+        value: {
+            type: Object,
+            default: undefined,
+        },
+    },
+
+    computed: {
+        tabindex() {
+            return this.tabbable ? 1 : 0;
+        },
+    },
+
+    beforeDestroy() {
+        this.unbindEventListeners();
+    },
+
+    methods: {
+        handleLeft(e) {
+            this.handleSlide(e, this.left, 'left');
+        },
+        handleRight(e) {
+            this.handleSlide(e, this.right, 'right');
+        },
+        handleUp(e) {
+            this.handleSlide(e, this.up, 'up');
+        },
+        handleDown(e) {
+            this.handleSlide(e, this.down, 'down');
+        },
+        handleMouseDown(e) {
+            this.handleChange(e, true);
+            window.addEventListener('mousemove', this.handleChange, false);
+            window.addEventListener('mouseup', this.handleMouseUp, false);
+        },
+        handleMouseUp() {
+            this.unbindEventListeners();
+        },
+        unbindEventListeners() {
+            window.removeEventListener('mousemove', this.handleChange);
+            window.removeEventListener('mouseup', this.handleMouseUp);
+        },
+        handleEscape(e) {
+            this.dispatch('ColorPicker', 'on-escape-keydown', e);
+        },
+        handleGetLeft(e) {
+            const {container} = this.$refs;
+            const xOffset = container.getBoundingClientRect().left + window.pageXOffset;
+            const pageX = e.pageX || getTouches(e, 'PageX');
+
+            return pageX - xOffset;
+        },
+        handleGetTop(e) {
+            const {container} = this.$refs;
+            const yOffset = container.getBoundingClientRect().top + window.pageYOffset;
+            const pageY = e.pageY || getTouches(e, 'PageY');
+
+            return pageY - yOffset;
+        },
+    },
+};

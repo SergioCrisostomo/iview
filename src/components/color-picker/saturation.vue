@@ -1,98 +1,113 @@
 <template>
-    <div class="ivu-color-picker-saturation-wrapper">
+    <div
+        :tabindex="tabindex"
+        class="ivu-color-picker-saturation-wrapper"
+        @keydown.esc="handleEscape"
+        @click="$el.focus()"
+        @keydown.left="handleLeft"
+        @keydown.right="handleRight"
+        @keydown.up="handleUp"
+        @keydown.down="handleDown"
+    >
         <div
-            class="ivu-color-picker-saturation"
-            :style="{background: bgColor}"
             ref="container"
+            :style="bgColorStyle"
+            class="ivu-color-picker-saturation"
             @mousedown="handleMouseDown">
             <div class="ivu-color-picker-saturation--white"></div>
             <div class="ivu-color-picker-saturation--black"></div>
-            <div class="ivu-color-picker-saturation-pointer" :style="{top: pointerTop, left: pointerLeft}">
+            <div
+                :style="pointerStyle"
+                class="ivu-color-picker-saturation-pointer">
                 <div class="ivu-color-picker-saturation-circle"></div>
             </div>
         </div>
     </div>
 </template>
-<script>
-    import throttle from 'lodash.throttle';
 
-    export default {
-        name: 'Saturation',
-        props: {
-            value: Object
+<script>
+import common from './mixin';
+import {clamp, getIncrement} from './utils';
+
+export default {
+    name: 'Saturation',
+
+    mixins: [common],
+
+    props: {
+        // more props in the mixin
+        visible: {
+            type: Boolean,
+            required: true,
         },
-        data () {
-            return {};
+    },
+
+    data() {
+        const normalStep = 0.01;
+
+        return {
+            left: -normalStep,
+            right: normalStep,
+            up: normalStep,
+            down: -normalStep,
+            multiplier: 10,
+            powerKey: 'shiftKey',
+        };
+    },
+
+    computed: {
+        bgColorStyle() {
+            return {background: `hsl(${this.value.hsv.h}, 100%, 50%)`};
         },
-        computed: {
-            colors () {
-                return this.value;
-            },
-            bgColor () {
-                return `hsl(${this.colors.hsv.h}, 100%, 50%)`;
-            },
-            pointerTop () {
-                return (-(this.colors.hsv.v * 100) + 1) + 100 + '%';
-            },
-            pointerLeft () {
-                return this.colors.hsv.s * 100 + '%';
+        pointerStyle() {
+            return {top: `${-(this.value.hsv.v * 100) + 1 + 100}%`, left: `${this.value.hsv.s * 100}%`};
+        },
+    },
+
+    watch: {
+        visible(val) {
+            if (val) {
+                this.$el.focus();
             }
         },
-        methods: {
-            throttle: throttle((fn, data) => {fn(data);}, 20,
-                {
-                    'leading': true,
-                    'trailing': false
-                }),
-            handleChange (e, skip) {
-                !skip && e.preventDefault();
-                const container = this.$refs.container;
-                const containerWidth = container.clientWidth;
-                const containerHeight = container.clientHeight;
-                const xOffset = container.getBoundingClientRect().left + window.pageXOffset;
-                const yOffset = container.getBoundingClientRect().top + window.pageYOffset;
-                const pageX = e.pageX || (e.touches ? e.touches[0].pageX : 0);
-                const pageY = e.pageY || (e.touches ? e.touches[0].pageY : 0);
-                let left = pageX - xOffset;
-                let top = pageY - yOffset;
-                if (left < 0) {
-                    left = 0;
-                } else if (left > containerWidth) {
-                    left = containerWidth;
-                } else if (top < 0) {
-                    top = 0;
-                } else if (top > containerHeight) {
-                    top = containerHeight;
-                }
-                const saturation = left / containerWidth;
-                let bright = -(top / containerHeight) + 1;
-                bright = bright > 0 ? bright : 0;
-                bright = bright > 1 ? 1 : bright;
-                this.throttle(this.onChange, {
-                    h: this.colors.hsv.h,
-                    s: saturation,
-                    v: bright,
-                    a: this.colors.hsv.a,
-                    source: 'hsva'
-                });
-            },
-            onChange (param) {
-                this.$emit('change', param);
-            },
-            handleMouseDown () {
-                // this.handleChange(e, true)
-                window.addEventListener('mousemove', this.handleChange);
-                window.addEventListener('mouseup', this.handleChange);
-                window.addEventListener('mouseup', this.handleMouseUp);
-            },
-            handleMouseUp () {
-                this.unbindEventListeners();
-            },
-            unbindEventListeners () {
-                window.removeEventListener('mousemove', this.handleChange);
-                window.removeEventListener('mouseup', this.handleChange);
-                window.removeEventListener('mouseup', this.handleMouseUp);
-            }
-        }
-    };
+    },
+
+    methods: {
+        change(h, s, v, a) {
+            this.$emit('change', {h, s, v, a, source: 'hsva'});
+        },
+        handleSlide(e, direction, key) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const isPowerKey = e[this.powerKey];
+            const increment = isPowerKey ? direction * this.multiplier : direction;
+            const {h, s, v, a} = this.value.hsv;
+            const saturation = clamp(s + getIncrement(key, ['left', 'right'], increment), 0, 1);
+            const bright = clamp(v + getIncrement(key, ['up', 'down'], increment), 0, 1);
+
+            this.change(h, saturation, bright, a);
+        },
+        handleChange(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const {clientWidth, clientHeight} = this.$refs.container;
+            const left = clamp(this.handleGetLeft(e), 0, clientWidth);
+            const top = clamp(this.handleGetTop(e), 0, clientHeight);
+            const saturation = left / clientWidth;
+            const bright = clamp(1 - top / clientHeight, 0, 1);
+
+            this.change(this.value.hsv.h, saturation, bright, this.value.hsv.a);
+        },
+        handleMouseDown(e) {
+            common.methods.handleMouseDown.call(this, e);
+            window.addEventListener('mouseup', this.handleChange, false);
+        },
+        unbindEventListeners(e) {
+            common.methods.unbindEventListeners.call(this, e);
+            window.removeEventListener('mouseup', this.handleChange);
+        },
+    },
+};
 </script>
