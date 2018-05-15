@@ -1,13 +1,19 @@
 <template>
-    <div class="ivu-color-picker-saturation-wrapper">
+    <div
+        :tabindex="tabbable ? 1 : 0"
+        class="ivu-color-picker-saturation-wrapper"
+        @keydown.esc="handleEscape"
+    >
         <div
-            class="ivu-color-picker-saturation"
-            :style="{background: bgColor}"
             ref="container"
+            :style="{background: bgColor}"
+            class="ivu-color-picker-saturation"
             @mousedown="handleMouseDown">
             <div class="ivu-color-picker-saturation--white"></div>
             <div class="ivu-color-picker-saturation--black"></div>
-            <div class="ivu-color-picker-saturation-pointer" :style="{top: pointerTop, left: pointerLeft}">
+            <div
+                :style="{top: pointerTop, left: pointerLeft}"
+                class="ivu-color-picker-saturation-pointer">
                 <div class="ivu-color-picker-saturation-circle"></div>
             </div>
         </div>
@@ -15,37 +21,62 @@
 </template>
 <script>
     import throttle from 'lodash.throttle';
+    import Emitter from '../../mixins/emitter';
 
     export default {
         name: 'Saturation',
+        mixins: [Emitter],
         props: {
-            value: Object
+            tabbable: {
+                type: Boolean,
+                required: true,
+            },
+            value: Object,
+            visible: {
+                type: Boolean,
+                required: true,
+            },
         },
-        data () {
+        data() {
             return {};
         },
         computed: {
-            colors () {
+            colors() {
                 return this.value;
             },
-            bgColor () {
+            bgColor() {
                 return `hsl(${this.colors.hsv.h}, 100%, 50%)`;
             },
-            pointerTop () {
-                return (-(this.colors.hsv.v * 100) + 1) + 100 + '%';
+            pointerTop() {
+                return `${-(this.colors.hsv.v * 100) + 1 + 100}%`;
             },
-            pointerLeft () {
-                return this.colors.hsv.s * 100 + '%';
-            }
+            pointerLeft() {
+                return `${this.colors.hsv.s * 100}%`;
+            },
+        },
+        watch: {
+            visible(val) {
+                if (val) {
+                    this.$el.focus();
+                }
+            },
         },
         methods: {
-            throttle: throttle((fn, data) => {fn(data);}, 20,
+            throttle: throttle(
+                (fn, data) => {
+                    fn(data);
+                },
+                20,
                 {
-                    'leading': true,
-                    'trailing': false
-                }),
-            handleChange (e, skip) {
-                !skip && e.preventDefault();
+                    leading: true,
+                    trailing: false,
+                },
+            ),
+            handleChange(e, skip) {
+                if (!skip) {
+                    e.preventDefault();
+                }
+
                 const container = this.$refs.container;
                 const containerWidth = container.clientWidth;
                 const containerHeight = container.clientHeight;
@@ -73,26 +104,28 @@
                     s: saturation,
                     v: bright,
                     a: this.colors.hsv.a,
-                    source: 'hsva'
+                    source: 'hsva',
                 });
             },
-            onChange (param) {
+            onChange(param) {
                 this.$emit('change', param);
             },
-            handleMouseDown () {
-                // this.handleChange(e, true)
+            handleMouseDown() {
                 window.addEventListener('mousemove', this.handleChange);
                 window.addEventListener('mouseup', this.handleChange);
                 window.addEventListener('mouseup', this.handleMouseUp);
             },
-            handleMouseUp () {
+            handleMouseUp() {
                 this.unbindEventListeners();
             },
-            unbindEventListeners () {
+            unbindEventListeners() {
                 window.removeEventListener('mousemove', this.handleChange);
                 window.removeEventListener('mouseup', this.handleChange);
                 window.removeEventListener('mouseup', this.handleMouseUp);
-            }
-        }
+            },
+            handleEscape() {
+                this.dispatch('ColorPicker', 'on-escape-keydown');
+            },
+        },
     };
 </script>

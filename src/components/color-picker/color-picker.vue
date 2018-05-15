@@ -1,52 +1,109 @@
 <template>
-    <div :class="classes" v-clickoutside="handleClose">
-        <div ref="reference" @click="toggleVisible" :class="wrapClasses">
-            <input type="hidden" :name="name" :value="currentValue">
+    <div
+        v-click-outside.capture="handleClose"
+        :class="classes">
+        <div
+            ref="reference"
+            :class="wrapClasses"
+            @click="toggleVisible">
+            <input
+                :name="name"
+                :value="currentValue"
+                type="hidden">
             <i class="ivu-icon ivu-icon-arrow-down-b ivu-input-icon ivu-input-icon-normal"></i>
-            <div :class="inputClasses">
+            <div
+                ref="input"
+                :tabindex="disabled ? 0 : 1"
+                :class="inputClasses"
+                @keydown.tab="onTab"
+                @keydown.esc="onEscape"
+                @keydown.up="onArrow"
+                @keydown.down="onArrow"
+            >
                 <div :class="[prefixCls + '-color']">
-                    <div :class="[prefixCls + '-color-empty']" v-show="value === '' && !visible">
+                    <div
+                        v-show="value === '' && !visible"
+                        :class="[prefixCls + '-color-empty']">
                         <i class="ivu-icon ivu-icon-ios-close-empty"></i>
                     </div>
-                    <div v-show="value || visible" :style="{backgroundColor: displayedColor}"></div>
+                    <div
+                        v-show="value || visible"
+                        :style="{backgroundColor: displayedColor}"></div>
                 </div>
             </div>
         </div>
         <transition name="transition-drop">
             <Drop
-                v-show="visible"
-                @click.native="handleTransferClick"
-                :class="{ [prefixCls + '-transfer']: transfer }"
-                class-name="ivu-transfer-no-max-height"
-                :placement="placement"
+                v-transfer-dom
+                v-show="isVisible"
                 ref="drop"
+                :class="{ [prefixCls + '-transfer']: transfer }"
+                :placement="placement"
                 :data-transfer="transfer"
-                v-transfer-dom>
+                class="ivu-transfer-no-max-height"
+            >
                 <div :class="[prefixCls + '-picker']">
                     <div :class="[prefixCls + '-picker-wrapper']">
                         <div :class="[prefixCls + '-picker-panel']">
-                            <Saturation v-model="saturationColors" @change="childChange"></Saturation>
+                            <Saturation
+                                ref="saturation"
+                                v-model="saturationColors"
+                                :tabbable="isVisible"
+                                :visible="visible"
+                                @change="childChange"
+                                @keydown.native.tab="handleFirstTab"
+                            ></Saturation>
                         </div>
-                        <div v-if="hue" :class="[prefixCls + '-picker-hue-slider']">
-                            <Hue v-model="saturationColors" @change="childChange"></Hue>
+                        <div
+                            v-if="hue"
+                            :class="[prefixCls + '-picker-hue-slider']">
+                            <Hue
+                                v-model="saturationColors"
+                                :tabbable="isVisible"
+                                @change="childChange"></Hue>
                         </div>
-                        <div v-if="alpha" :class="[prefixCls + '-picker-alpha-slider']">
-                            <Alpha v-model="saturationColors" @change="childChange"></Alpha>
+                        <div
+                            v-if="alpha"
+                            :class="[prefixCls + '-picker-alpha-slider']">
+                            <Alpha
+                                v-model="saturationColors"
+                                :tabbable="isVisible"
+                                @change="childChange"></Alpha>
                         </div>
                         <recommend-colors
                             v-if="colors.length"
+                            :tabbable="isVisible"
                             :list="colors"
                             :class="[prefixCls + '-picker-colors']"
                             @picker-color="handleSelectColor"></recommend-colors>
                         <recommend-colors
                             v-if="!colors.length && recommend"
+                            :tabbable="isVisible"
                             :list="recommendedColor"
                             :class="[prefixCls + '-picker-colors']"
                             @picker-color="handleSelectColor"></recommend-colors>
                     </div>
                     <div :class="[prefixCls + '-confirm']">
-                        <span :class="[prefixCls + '-confirm-color']">{{ formatColor }}</span>
-                        <Confirm @on-pick-success="handleSuccess" @on-pick-clear="handleClear"></Confirm>
+                        <span :class="[prefixCls + '-confirm-color']">{{formatColor}}</span>
+                        <i-button
+                            ref="clear"
+                            :tabindex="tabindex"
+                            size="small"
+                            type="ghost"
+                            @click.native="handleClear"
+                            @keydown.enter="handleClear"
+                            @keydown.native.esc="closer"
+                        >{{t('i.datepicker.clear')}}</i-button>
+                        <i-button
+                            ref="ok"
+                            :tabindex="tabindex"
+                            size="small"
+                            type="primary"
+                            @click.native="handleSuccess"
+                            @keydown.native.tab="handleLastTab"
+                            @keydown.enter="handleSuccess"
+                            @keydown.native.esc="closer"
+                        >{{t('i.datepicker.ok')}}</i-button>
                     </div>
                 </div>
             </Drop>
@@ -56,23 +113,23 @@
 <script>
     import tinycolor from 'tinycolor2';
 
-    import clickoutside from '../../directives/clickoutside';
+    import vClickOutside from 'v-click-outside-x/index';
     import TransferDom from '../../directives/transfer-dom';
 
     import Drop from '../../components/select/dropdown.vue';
     import RecommendColors from './recommend-colors.vue';
-    import Confirm from '../date-picker/base/confirm.vue';
     import Saturation from './saturation.vue';
     import Hue from './hue.vue';
     import Alpha from './alpha.vue';
+    import Locale from '../../mixins/locale';
 
-    import { oneOf } from '../../utils/assist';
+    import {oneOf} from '../../utils/assist';
     import Emitter from '../../mixins/emitter';
 
     const prefixCls = 'ivu-color-picker';
     const inputPrefixCls = 'ivu-input';
 
-    function _colorChange (data, oldHue) {
+    function _colorChange(data, oldHue) {
         data = data === '' ? '#2d8cf0' : data;
         const alpha = data && data.a;
         let color;
@@ -111,79 +168,95 @@
         }
 
         return {
-            hsl: hsl,
+            hsl,
             hex: color.toHexString().toUpperCase(),
             rgba: color.toRgb(),
-            hsv: hsv,
+            hsv,
             oldHue: data.h || oldHue || hsl.h,
             source: data.source,
-            a: data.a || color.getAlpha()
+            a: data.a || color.getAlpha(),
         };
     }
 
     export default {
         name: 'ColorPicker',
-        mixins: [ Emitter ],
-        components: { Drop, Confirm, RecommendColors, Saturation, Hue, Alpha },
-        directives: { clickoutside, TransferDom },
+        components: {Drop, RecommendColors, Saturation, Hue, Alpha},
+        directives: {clickOutside: vClickOutside.directive, TransferDom},
+        mixins: [Emitter, Locale],
         props: {
             value: {
-                type: String
+                type: String,
             },
             hue: {
                 type: Boolean,
-                default: true
+                default: true,
             },
             alpha: {
                 type: Boolean,
-                default: false
+                default: false,
             },
             recommend: {
                 type: Boolean,
-                default: false
+                default: false,
             },
             format: {
-                validator (value) {
+                validator(value) {
                     return oneOf(value, ['hsl', 'hsv', 'hex', 'rgb']);
-                }
+                },
             },
             colors: {
                 type: Array,
-                default () {
+                default() {
                     return [];
-                }
+                },
             },
             disabled: {
                 type: Boolean,
-                default: false
+                default: false,
             },
             size: {
-                validator (value) {
+                validator(value) {
                     return oneOf(value, ['small', 'large', 'default']);
                 },
-                default: 'default'
+                default: 'default',
+            },
+            show: {
+                type: Boolean,
+                default: true,
             },
             placement: {
-                validator (value) {
-                    return oneOf(value, ['top', 'top-start', 'top-end', 'bottom', 'bottom-start', 'bottom-end', 'left', 'left-start', 'left-end', 'right', 'right-start', 'right-end']);
+                validator(value) {
+                    return oneOf(value, [
+                        'top',
+                        'top-start',
+                        'top-end',
+                        'bottom',
+                        'bottom-start',
+                        'bottom-end',
+                        'left',
+                        'left-start',
+                        'left-end',
+                        'right',
+                        'right-start',
+                        'right-end',
+                    ]);
                 },
-                default: 'bottom'
+                default: 'bottom',
             },
             transfer: {
                 type: Boolean,
-                default: false
+                default: false,
             },
             name: {
-                type: String
-            }
+                type: String,
+            },
         },
-        data () {
+        data() {
             return {
                 val: _colorChange(this.value),
                 currentValue: this.value,
-                prefixCls: prefixCls,
+                prefixCls,
                 visible: false,
-                disableCloseUnderTransfer: false,  // transfer 模式下，点击Drop也会触发关闭
                 recommendedColor: [
                     '#2d8cf0',
                     '#19be6b',
@@ -208,54 +281,60 @@
                     '#cddc39',
                     '#607d8b',
                     '#000000',
-                    '#ffffff'
-                ]
+                    '#ffffff',
+                ],
             };
         },
         computed: {
-            transition () {
+            tabindex() {
+                return this.isVisible ? 1 : 0;
+            },
+            isVisible() {
+                return this.show && this.visible;
+            },
+            transition() {
                 if (this.placement === 'bottom-start' || this.placement === 'bottom' || this.placement === 'bottom-end') {
                     return 'slide-up';
-                } else {
-                    return 'fade';
                 }
+                return 'fade';
             },
             saturationColors: {
-                get () {
+                get() {
                     return this.val;
                 },
-                set (newVal) {
+                set(newVal) {
                     this.val = newVal;
                     this.$emit('on-active-change', this.formatColor);
-                }
+                },
             },
-            classes () {
+            classes() {
                 return [
                     `${prefixCls}`,
                     {
-                        [`${prefixCls}-transfer`]: this.transfer
-                    }
+                        [`${prefixCls}-transfer`]: this.transfer,
+                    },
                 ];
             },
-            wrapClasses () {
+            wrapClasses() {
                 return [
                     `${prefixCls}-rel`,
                     `${prefixCls}-${this.size}`,
                     `${inputPrefixCls}-wrapper`,
-                    `${inputPrefixCls}-wrapper-${this.size}`
+                    `${inputPrefixCls}-wrapper-${this.size}`,
                 ];
             },
-            inputClasses () {
+            inputClasses() {
                 return [
                     `${prefixCls}-input`,
                     `${inputPrefixCls}`,
                     `${inputPrefixCls}-${this.size}`,
                     {
-                        [`${inputPrefixCls}-disabled`]: this.disabled
-                    }
+                        [`${prefixCls}-focused`]: this.visible,
+                        [`${inputPrefixCls}-disabled`]: this.disabled,
+                    },
                 ];
             },
-            displayedColor () {
+            displayedColor() {
                 let color;
                 if (this.visible) {
                     const rgba = this.saturationColors.rgba;
@@ -263,14 +342,14 @@
                         r: rgba.r,
                         g: rgba.g,
                         b: rgba.b,
-                        a: rgba.a
+                        a: rgba.a,
                     };
                 } else {
                     color = tinycolor(this.value).toRgb();
                 }
                 return `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`;
             },
-            formatColor () {
+            formatColor() {
                 const value = this.saturationColors;
                 const format = this.format;
                 let color;
@@ -292,13 +371,13 @@
                     color = value.hex;
                 }
                 return color;
-            }
+            },
         },
         watch: {
-            value (newVal) {
+            value(newVal) {
                 this.val = _colorChange(newVal);
             },
-            visible (val) {
+            visible(val) {
                 this.val = _colorChange(this.value);
                 if (val) {
                     this.$refs.drop.update();
@@ -306,34 +385,48 @@
                     this.$refs.drop.destroy();
                 }
                 this.$emit('on-open-change', Boolean(val));
-            }
+            },
+        },
+        mounted() {
+            this.$on('on-escape-keydown', this.closer);
         },
         methods: {
-            // 开启 transfer 时，点击 Drop 即会关闭，这里不让其关闭
-            handleTransferClick () {
-                if (this.transfer) this.disableCloseUnderTransfer = true;
+            cancelEvents(event) {
+                event.stopPropagation();
+                event.preventDefault();
             },
-            handleClose () {
-                if (this.disableCloseUnderTransfer) {
-                    this.disableCloseUnderTransfer = false;
-                    return false;
+            handleClose(event) {
+                if (this.visible) {
+                    if (this.transfer) {
+                        const {$el} = this.$refs.drop;
+                        const {target} = event;
+                        const isTransferredTarget = $el === target || $el.contains(target);
+                        if (isTransferredTarget) {
+                            return false;
+                        }
+                    }
+
+                    this.cancelEvents(event);
+                    this.$refs.input.focus();
                 }
+
                 this.visible = false;
             },
-            toggleVisible () {
+            toggleVisible() {
+                this.$refs.input.focus();
                 this.visible = !this.visible;
             },
-            childChange (data) {
+            childChange(data) {
                 this.colorChange(data);
             },
-            colorChange (data, oldHue) {
+            colorChange(data, oldHue) {
                 this.oldHue = this.saturationColors.hsl.h;
                 this.saturationColors = _colorChange(data, oldHue || this.oldHue);
             },
-            isValidHex (hex) {
+            isValidHex(hex) {
                 return tinycolor(hex).isValid();
             },
-            simpleCheckForValidColor (data) {
+            simpleCheckForValidColor(data) {
                 const keysToCheck = ['r', 'g', 'b', 'a', 'h', 's', 'l', 'v'];
                 let checked = 0;
                 let passed = 0;
@@ -352,24 +445,59 @@
                     return data;
                 }
             },
-            handleSuccess () {
+            closer() {
+                this.visible = false;
+                this.$refs.input.focus();
+            },
+            handleSuccess() {
                 const color = this.formatColor;
                 this.currentValue = color;
                 this.$emit('input', color);
                 this.$emit('on-change', color);
                 this.dispatch('FormItem', 'on-form-change', color);
-                this.handleClose();
+                this.closer();
+                this.$emit('on-pick-success');
             },
-            handleClear () {
+            handleClear() {
                 this.currentValue = '';
                 this.$emit('input', '');
                 this.$emit('on-change', '');
                 this.dispatch('FormItem', 'on-form-change', '');
-                this.handleClose();
+                this.closer();
+                this.$emit('on-pick-clear');
             },
-            handleSelectColor (color) {
+            handleSelectColor(color) {
                 this.val = _colorChange(color);
-            }
-        }
+            },
+            handleFirstTab(event) {
+                if (event.shiftKey) {
+                    this.cancelEvents(event);
+                    this.$refs.ok.$el.focus();
+                }
+            },
+            handleLastTab(event) {
+                if (!event.shiftKey) {
+                    this.cancelEvents(event);
+                    this.$refs.saturation.$el.focus();
+                }
+            },
+            onTab(event) {
+                if (this.visible) {
+                    this.cancelEvents(event);
+                }
+            },
+            onEscape(event) {
+                if (this.visible) {
+                    this.cancelEvents(event);
+                    this.closer();
+                }
+            },
+            onArrow(event) {
+                if (!this.visible) {
+                    this.cancelEvents(event);
+                    this.visible = true;
+                }
+            },
+        },
     };
 </script>
