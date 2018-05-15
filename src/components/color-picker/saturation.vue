@@ -3,6 +3,7 @@
         :tabindex="tabbable ? 1 : 0"
         class="ivu-color-picker-saturation-wrapper"
         @keydown.esc="handleEscape"
+        @keydown.up.down.left.right="handleCursorPosition"
     >
         <div
             ref="container"
@@ -38,7 +39,10 @@
             },
         },
         data() {
-            return {};
+            return {
+                saturation: this.value.hsv.s,
+                bright: this.value.hsv.v,
+            };
         },
         computed: {
             colors() {
@@ -117,6 +121,26 @@
             },
             handleMouseUp() {
                 this.unbindEventListeners();
+            },
+            handleCursorPosition(e){
+                const vertical = (code => {
+                    if (code === 38) return 0.01;
+                    if (code === 40) return -0.01;
+                    return 0;
+                })(e.keyCode, this.colors.hsv.h);
+
+                const horizontal = (code => {
+                    if (code === 39) return 0.01;
+                    if (code === 37) return -0.01;
+                    return 0;
+                })(e.keyCode);
+
+                this.$emit('change', {
+                    ...this.colors.hsv,
+                    source: 'hsva',
+                    v: this.colors.hsv.v + vertical,
+                    s: this.colors.hsv.s + horizontal,
+                });
             },
             unbindEventListeners() {
                 window.removeEventListener('mousemove', this.handleChange);
