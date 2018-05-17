@@ -48,17 +48,16 @@ export default {
             down: -jumpStep,
             powerKey: 'shiftKey',
             oldHue: 0,
-            pullDirection: '',
+            displayHue: this.value.hsl.h,
+            lastDirection: 0,
         };
     },
 
     computed: {
         pointerStyle() {
-            const {h} = this.value.hsl;
-
             return {
                 top: 0,
-                left: h === 0 && this.pullDirection === 'right' ? '100%' : `${h * 100 / 360}%`,
+                left: `${this.displayHue * 100 / 360}%`,
             };
         },
     },
@@ -66,33 +65,26 @@ export default {
     watch: {
         value(value) {
             const {h} = value.hsl;
-
-            if (h !== 0) {
-                const diff = h - this.oldHue;
-
-                if (diff !== 0) {
-                    this.pullDirection = diff > 0 ? 'right' : 'left';
-                }
-            }
-
             this.oldHue = h;
+            this.displayHue = (h === 0 && this.lastDirection === 1) ? 360 : h;
         },
     },
 
     methods: {
         change(newHue) {
-            const {h, s, l, a} = this.value.hsl;
-
-            if (h !== newHue) {
-                this.$emit('change', {h: newHue, s, l, a, source: 'hsl'});
-            }
+            this.$emit('change', {
+                ...this.value.hsl,
+                h: newHue,
+                source: 'hsl'
+            });
         },
         handleSlide(e, direction) {
             e.preventDefault();
             e.stopPropagation();
 
             if (e[this.powerKey]) {
-                this.change(direction <= 0 ? 0 : 360);
+                this.lastDirection = direction;
+                this.change(direction === 1 ? 360 : 0);
                 return;
             }
 
