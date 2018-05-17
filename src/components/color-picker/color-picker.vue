@@ -217,6 +217,7 @@ export default {
         return {
             val: changeColor(this.value),
             currentValue: this.value,
+            dragging: false,
             prefixCls,
             visible: false,
             recommendedColor: [
@@ -337,12 +338,16 @@ export default {
 
     mounted() {
         this.$on('on-escape-keydown', this.closer);
+        this.$on('on-dragging', this.setDragging);
     },
 
     methods: {
+        setDragging(value) {
+            this.dragging = value;
+        },
         handleClose(event) {
             if (this.visible) {
-                if (event.type === 'mousedown') {
+                if (this.dragging || event.type === 'mousedown') {
                     event.preventDefault();
                     return;
                 }

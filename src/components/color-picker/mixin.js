@@ -39,6 +39,7 @@ export default {
             this.handleSlide(e, this.down, 'down');
         },
         handleMouseDown(e) {
+            this.dispatch('ColorPicker', 'on-dragging', true);
             this.handleChange(e, true);
             window.addEventListener('mousemove', this.handleChange, false);
             window.addEventListener('mouseup', this.handleMouseUp, false);
@@ -49,6 +50,9 @@ export default {
         unbindEventListeners() {
             window.removeEventListener('mousemove', this.handleChange);
             window.removeEventListener('mouseup', this.handleMouseUp);
+            // This timeout is required so that the click handler for click-outside
+            // has the chance to run before the mouseup removes the dragging flag.
+            setTimeout(() => this.dispatch('ColorPicker', 'on-dragging', false), 1);
         },
         handleEscape(e) {
             this.dispatch('ColorPicker', 'on-escape-keydown', e);
