@@ -1,23 +1,16 @@
 import Emitter from '../../mixins/emitter';
+import tabbableMixin from './tabbableMixin';
+import handleEscapeMixin from './handleEscapeMixin';
 import {getTouches} from './utils';
 
 export default {
-    mixins: [Emitter],
+    mixins: [Emitter, tabbableMixin, handleEscapeMixin],
 
     props: {
-        tabbable: {
-            type: Boolean,
-            required: true,
-        },
+        // more props in the mixin
         value: {
             type: Object,
             default: undefined,
-        },
-    },
-
-    computed: {
-        tabindex() {
-            return this.tabbable ? 1 : 0;
         },
     },
 
@@ -39,6 +32,7 @@ export default {
             this.handleSlide(e, this.down, 'down');
         },
         handleMouseDown(e) {
+            this.dispatch('ColorPicker', 'on-dragging', true);
             this.handleChange(e, true);
             window.addEventListener('mousemove', this.handleChange, false);
             window.addEventListener('mouseup', this.handleMouseUp, false);
@@ -49,18 +43,18 @@ export default {
         unbindEventListeners() {
             window.removeEventListener('mousemove', this.handleChange);
             window.removeEventListener('mouseup', this.handleMouseUp);
+            // This timeout is required so that the click handler for click-outside
+            // has the chance to run before the mouseup removes the dragging flag.
+            setTimeout(() => this.dispatch('ColorPicker', 'on-dragging', false), 1);
         },
-        handleEscape(e) {
-            this.dispatch('ColorPicker', 'on-escape-keydown', e);
-        },
-        handleGetLeft(e) {
+        getLeft(e) {
             const {container} = this.$refs;
             const xOffset = container.getBoundingClientRect().left + window.pageXOffset;
             const pageX = e.pageX || getTouches(e, 'PageX');
 
             return pageX - xOffset;
         },
-        handleGetTop(e) {
+        getTop(e) {
             const {container} = this.$refs;
             const yOffset = container.getBoundingClientRect().top + window.pageYOffset;
             const pageY = e.pageY || getTouches(e, 'PageY');

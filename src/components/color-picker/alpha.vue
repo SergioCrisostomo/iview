@@ -1,6 +1,6 @@
 <template>
     <div
-        :tabindex="tabindex"
+        :tabindex="getTabindex(tabbable)"
         class="ivu-color-picker-alpha"
         @click="$el.focus()"
         @keydown.esc="handleEscape"
@@ -22,7 +22,7 @@
             @touchmove="handleChange"
             @touchstart="handleChange">
             <div
-                :style="pointerStyle"
+                :style="{top: 0, left: `${value.a * 100}%`}"
                 class="ivu-color-picker-alpha-pointer">
                 <div class="ivu-color-picker-alpha-picker"></div>
             </div>
@@ -31,13 +31,13 @@
 </template>
 
 <script>
-import common from './mixin';
+import hsaMixin from './hsaMixin';
 import {clamp, toRGBAString} from './utils';
 
 export default {
     name: 'Alpha',
 
-    mixins: [common],
+    mixins: [hsaMixin],
 
     props: {
         // more props in the mixin
@@ -68,12 +68,6 @@ export default {
 
             return {background: `linear-gradient(to right, ${start} 0%, ${finish} 100%)`};
         },
-        pointerStyle() {
-            return {
-                top: 0,
-                left: `${this.value.a * 100}%`,
-            };
-        },
     },
 
     methods: {
@@ -95,7 +89,7 @@ export default {
             e.preventDefault();
             e.stopPropagation();
 
-            const left = this.handleGetLeft(e);
+            const left = this.getLeft(e);
 
             if (left < 0) {
                 this.change(0);

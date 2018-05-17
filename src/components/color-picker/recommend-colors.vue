@@ -1,7 +1,7 @@
 <template>
     <div
         ref="reference"
-        :tabindex="tabbable ? 1 : 0"
+        :tabindex="getTabindex(tabbable)"
         @click="handleClick"
         @keydown.esc="handleEscape"
         @keydown.enter="handleEnter"
@@ -33,12 +33,14 @@
 
 <script>
 import Emitter from '../../mixins/emitter';
+import tabbableMixin from './tabbableMixin';
+import handleEscapeMixin from './handleEscapeMixin';
 import {clamp} from './utils';
 
 export default {
     name: 'RecommendedColors',
 
-    mixins: [Emitter],
+    mixins: [Emitter, tabbableMixin, handleEscapeMixin],
 
     props: {
         list: {
@@ -127,9 +129,6 @@ export default {
                 this.focusColor();
                 this.$emit('picker-color', this.list[colorId]);
             }
-        },
-        handleEscape(e) {
-            this.dispatch('ColorPicker', 'on-escape-keydown', e);
         },
         lineBreak(list, index) {
             if (!index) {

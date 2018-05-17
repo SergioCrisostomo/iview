@@ -14,7 +14,7 @@
             <i class="ivu-icon ivu-icon-arrow-down-b ivu-input-icon ivu-input-icon-normal"></i>
             <div
                 ref="input"
-                :tabindex="disabled ? 0 : 1"
+                :tabindex="getTabindex(disabled)"
                 :class="inputClasses"
                 @keydown.tab="onTab"
                 @keydown.esc="onEscape"
@@ -88,7 +88,7 @@
                         <span :class="[prefixCls + '-confirm-color']">{{formatColor}}</span>
                         <i-button
                             ref="clear"
-                            :tabindex="tabindex"
+                            :tabindex="getTabindex(isVisible)"
                             size="small"
                             type="ghost"
                             @click.native="handleClear"
@@ -97,7 +97,7 @@
                         >{{t('i.datepicker.clear')}}</i-button>
                         <i-button
                             ref="ok"
-                            :tabindex="tabindex"
+                            :tabindex="getTabindex(isVisible)"
                             size="small"
                             type="primary"
                             @click.native="handleSuccess"
@@ -217,6 +217,7 @@ export default {
         return {
             val: changeColor(this.value),
             currentValue: this.value,
+            dragging: false,
             prefixCls,
             visible: false,
             recommendedColor: [
@@ -249,9 +250,6 @@ export default {
     },
 
     computed: {
-        tabindex() {
-            return this.isVisible ? 1 : 0;
-        },
         isVisible() {
             return this.show && this.visible;
         },
@@ -337,12 +335,19 @@ export default {
 
     mounted() {
         this.$on('on-escape-keydown', this.closer);
+        this.$on('on-dragging', this.setDragging);
     },
 
     methods: {
+        getTabindex(value) {
+            return value ? 1 : 0;
+        },
+        setDragging(value) {
+            this.dragging = value;
+        },
         handleClose(event) {
             if (this.visible) {
-                if (event.type === 'mousedown') {
+                if (this.dragging || event.type === 'mousedown') {
                     event.preventDefault();
                     return;
                 }

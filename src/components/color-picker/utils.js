@@ -93,25 +93,25 @@ export function isValidHex(hex) {
     return tinycolor(hex).isValid();
 }
 
+function checkIteratee(data, counts, letter) {
+    let {checked, passed} = counts;
+    const value = data[letter];
+
+    if (value) {
+        checked += 1;
+
+        if (Number.isFinite(value)) {
+            passed += 1;
+        }
+    }
+
+    return {checked, passed};
+}
+
+const keysToCheck = ['r', 'g', 'b', 'a', 'h', 's', 'l', 'v'];
+
 export function simpleCheckForValidColor(data) {
-    const keysToCheck = ['r', 'g', 'b', 'a', 'h', 's', 'l', 'v'];
-    const results = keysToCheck.reduce(
-        (counts, letter) => {
-            let {checked, passed} = counts;
-            const value = data[letter];
-
-            if (value) {
-                checked += 1;
-
-                if (Number.isFinite(value)) {
-                    passed += 1;
-                }
-            }
-
-            return {checked, passed};
-        },
-        {checked: 0, passed: 0},
-    );
+    const results = keysToCheck.reduce(checkIteratee.bind(null, data), {checked: 0, passed: 0});
 
     return results.checked === results.passed ? data : undefined;
 }

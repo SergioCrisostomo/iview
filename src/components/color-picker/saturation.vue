@@ -1,6 +1,6 @@
 <template>
     <div
-        :tabindex="tabindex"
+        :tabindex="getTabindex(tabbable)"
         class="ivu-color-picker-saturation-wrapper"
         @keydown.esc="handleEscape"
         @click="$el.focus()"
@@ -26,13 +26,13 @@
 </template>
 
 <script>
-import common from './mixin';
+import hsaMixin from './hsaMixin';
 import {clamp, getIncrement} from './utils';
 
 export default {
     name: 'Saturation',
 
-    mixins: [common],
+    mixins: [hsaMixin],
 
     props: {
         // more props in the mixin
@@ -93,19 +93,19 @@ export default {
             e.stopPropagation();
 
             const {clientWidth, clientHeight} = this.$refs.container;
-            const left = clamp(this.handleGetLeft(e), 0, clientWidth);
-            const top = clamp(this.handleGetTop(e), 0, clientHeight);
+            const left = clamp(this.getLeft(e), 0, clientWidth);
+            const top = clamp(this.getTop(e), 0, clientHeight);
             const saturation = left / clientWidth;
             const bright = clamp(1 - top / clientHeight, 0, 1);
 
             this.change(this.value.hsv.h, saturation, bright, this.value.hsv.a);
         },
         handleMouseDown(e) {
-            common.methods.handleMouseDown.call(this, e);
+            hsaMixin.methods.handleMouseDown.call(this, e);
             window.addEventListener('mouseup', this.handleChange, false);
         },
         unbindEventListeners(e) {
-            common.methods.unbindEventListeners.call(this, e);
+            hsaMixin.methods.unbindEventListeners.call(this, e);
             window.removeEventListener('mouseup', this.handleChange);
         },
     },

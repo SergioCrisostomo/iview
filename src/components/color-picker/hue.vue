@@ -1,6 +1,6 @@
 <template>
     <div
-        :tabindex="tabindex"
+        :tabindex="getTabindex(tabbable)"
         class="ivu-color-picker-hue"
         @click="$el.focus()"
         @keydown.esc="handleEscape"
@@ -16,7 +16,7 @@
             @touchmove="handleChange"
             @touchstart="handleChange">
             <div
-                :style="pointerStyle"
+                :style="{top: 0, left: `${percent}%`}"
                 class="ivu-color-picker-hue-pointer">
                 <div class="ivu-color-picker-hue-picker"></div>
             </div>
@@ -25,21 +25,21 @@
 </template>
 
 <script>
-import common from './mixin';
+import hsaMixin from './hsaMixin';
 import {clamp} from './utils';
 
 export default {
     name: 'Hue',
 
-    mixins: [common],
+    mixins: [hsaMixin],
 
     props: {
         // more props in the mixin
     },
 
     data() {
-        const normalStep = 1;
-        const jumpStep = 36;
+        const normalStep = 1 / 360 * 25;
+        const jumpStep = 20 * normalStep;
 
         return {
             left: -normalStep,
@@ -47,41 +47,18 @@ export default {
             up: jumpStep,
             down: -jumpStep,
             powerKey: 'shiftKey',
-            oldHue: 0,
-            pullDirection: '',
+            percent: clamp(this.value.hsl.h * 100 / 360, 0, 100),
         };
     },
 
-    computed: {
-        pointerStyle() {
-            const {h} = this.value.hsl;
-
-            return {
-                top: 0,
-                left: h === 0 && this.pullDirection === 'right' ? '100%' : `${h * 100 / 360}%`,
-            };
-        },
-    },
-
-    watch: {
-        value(value) {
-            const {h} = value.hsl;
-
-            if (h !== 0) {
-                const diff = h - this.oldHue;
-
-                if (diff !== 0) {
-                    this.pullDirection = diff > 0 ? 'right' : 'left';
-                }
-            }
-
-            this.oldHue = h;
-        },
-    },
+    watch: {},
 
     methods: {
-        change(newHue) {
+        change(percent) {
+            this.percent = clamp(percent, 0, 100);
+
             const {h, s, l, a} = this.value.hsl;
+            const newHue = clamp(percent / 100 * 360, 0, 360);
 
             if (h !== newHue) {
                 this.$emit('change', {h: newHue, s, l, a, source: 'hsl'});
@@ -92,17 +69,17 @@ export default {
             e.stopPropagation();
 
             if (e[this.powerKey]) {
-                this.change(direction <= 0 ? 0 : 360);
+                this.change(direction < 0 ? 0 : 100);
                 return;
             }
 
-            this.change(clamp(this.value.hsl.h + direction, 0, 360));
+            this.change(this.percent + direction);
         },
         handleChange(e) {
             e.preventDefault();
             e.stopPropagation();
 
-            const left = this.handleGetLeft(e);
+            const left = this.getLeft(e);
 
             if (left < 0) {
                 this.change(0);
@@ -112,11 +89,11 @@ export default {
             const {clientWidth} = this.$refs.container;
 
             if (left > clientWidth) {
-                this.change(360);
+                this.change(100);
                 return;
             }
 
-            this.change(360 * Math.round(left * 100 / clientWidth) / 100);
+            this.change(left * 100 / clientWidth);
         },
     },
 };
