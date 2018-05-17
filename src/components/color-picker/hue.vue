@@ -65,8 +65,9 @@ export default {
     watch: {
         value(value) {
             const {h} = value.hsl;
-            this.oldHue = h;
-            this.displayHue = (h === 0 && this.lastDirection === 1) ? 360 : h;
+            const edge = Math.round(this.oldHue / 360);
+            this.displayHue = h % 360 === 0 ? (edge === 1 ? 360 : 0) : h;
+            this.oldHue = this.displayHue;
         },
     },
 
@@ -84,7 +85,9 @@ export default {
 
             if (e[this.powerKey]) {
                 this.lastDirection = direction;
-                this.change(direction === 1 ? 360 : 0);
+                const value = direction === 1 ? 360 : 0;
+                this.oldHue = value; // force update
+                this.change(value);
                 return;
             }
 
