@@ -1,13 +1,11 @@
 import Emitter from '../../mixins/emitter';
-import tabbableMixin from './tabbableMixin';
 import handleEscapeMixin from './handleEscapeMixin';
 import {getTouches} from './utils';
 
 export default {
-    mixins: [Emitter, tabbableMixin, handleEscapeMixin],
+    mixins: [Emitter, handleEscapeMixin],
 
     props: {
-        // more props in the mixin
         value: {
             type: Object,
             default: undefined,

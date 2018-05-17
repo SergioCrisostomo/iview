@@ -14,7 +14,7 @@
             <i class="ivu-icon ivu-icon-arrow-down-b ivu-input-icon ivu-input-icon-normal"></i>
             <div
                 ref="input"
-                :tabindex="getTabindex(disabled)"
+                :tabindex="0"
                 :class="inputClasses"
                 @keydown.tab="onTab"
                 @keydown.esc="onEscape"
@@ -43,13 +43,14 @@
                 :data-transfer="transfer"
                 class="ivu-transfer-no-max-height"
             >
-                <div :class="[prefixCls + '-picker']">
+                <div
+                    v-if="isVisible"
+                    :class="[prefixCls + '-picker']">
                     <div :class="[prefixCls + '-picker-wrapper']">
                         <div :class="[prefixCls + '-picker-panel']">
                             <Saturation
                                 ref="saturation"
                                 v-model="saturationColors"
-                                :tabbable="isVisible"
                                 :visible="visible"
                                 @change="childChange"
                                 @keydown.native.tab="handleFirstTab"
@@ -60,7 +61,6 @@
                             :class="[prefixCls + '-picker-hue-slider']">
                             <Hue
                                 v-model="saturationColors"
-                                :tabbable="isVisible"
                                 @change="childChange"></Hue>
                         </div>
                         <div
@@ -68,18 +68,15 @@
                             :class="[prefixCls + '-picker-alpha-slider']">
                             <Alpha
                                 v-model="saturationColors"
-                                :tabbable="isVisible"
                                 @change="childChange"></Alpha>
                         </div>
                         <recommend-colors
                             v-if="colors.length"
-                            :tabbable="isVisible"
                             :list="colors"
                             :class="[prefixCls + '-picker-colors']"
                             @picker-color="handleSelectColor"></recommend-colors>
                         <recommend-colors
                             v-if="!colors.length && recommend"
-                            :tabbable="isVisible"
                             :list="recommendedColor"
                             :class="[prefixCls + '-picker-colors']"
                             @picker-color="handleSelectColor"></recommend-colors>
@@ -88,7 +85,7 @@
                         <span :class="[prefixCls + '-confirm-color']">{{formatColor}}</span>
                         <i-button
                             ref="clear"
-                            :tabindex="getTabindex(isVisible)"
+                            :tabindex="0"
                             size="small"
                             type="ghost"
                             @click.native="handleClear"
@@ -97,7 +94,7 @@
                         >{{t('i.datepicker.clear')}}</i-button>
                         <i-button
                             ref="ok"
-                            :tabindex="getTabindex(isVisible)"
+                            :tabindex="0"
                             size="small"
                             type="primary"
                             @click.native="handleSuccess"
@@ -339,9 +336,6 @@ export default {
     },
 
     methods: {
-        getTabindex(value) {
-            return value ? 1 : 0;
-        },
         setDragging(value) {
             this.dragging = value;
         },
@@ -402,6 +396,7 @@ export default {
         },
         handleSelectColor(color) {
             this.val = changeColor(color);
+            this.$emit('on-active-change', this.formatColor);
         },
         handleFirstTab(event) {
             if (event.shiftKey) {

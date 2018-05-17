@@ -1,7 +1,7 @@
 <template>
     <div
         ref="reference"
-        :tabindex="getTabindex(tabbable)"
+        tabindex="0"
         @click="handleClick"
         @keydown.esc="handleEscape"
         @keydown.enter="handleEnter"
@@ -14,7 +14,7 @@
     >
         <template v-for="(item, index) in list">
             <div
-                :key="item"
+                :key="item + ':' + index"
                 class="ivu-color-picker-picker-colors-wrapper">
                 <div :data-color-id="index">
                     <div
@@ -33,23 +33,18 @@
 
 <script>
 import Emitter from '../../mixins/emitter';
-import tabbableMixin from './tabbableMixin';
 import handleEscapeMixin from './handleEscapeMixin';
 import {clamp} from './utils';
 
 export default {
     name: 'RecommendedColors',
 
-    mixins: [Emitter, tabbableMixin, handleEscapeMixin],
+    mixins: [Emitter, handleEscapeMixin],
 
     props: {
         list: {
             type: Array,
             default: undefined,
-        },
-        tabbable: {
-            type: Boolean,
-            required: true,
         },
     },
 
@@ -128,6 +123,7 @@ export default {
                 this.grid.y = Math.ceil(id / this.columns);
                 this.focusColor();
                 this.$emit('picker-color', this.list[colorId]);
+                this.$emit('change', {hex: this.list[colorId], source: 'hex'});
             }
         },
         lineBreak(list, index) {

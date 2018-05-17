@@ -1,6 +1,6 @@
 <template>
     <div
-        :tabindex="getTabindex(tabbable)"
+        tabindex="0"
         class="ivu-color-picker-hue"
         @click="$el.focus()"
         @keydown.esc="handleEscape"

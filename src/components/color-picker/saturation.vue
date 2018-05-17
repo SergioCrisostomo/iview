@@ -1,6 +1,6 @@
 <template>
     <div
-        :tabindex="getTabindex(tabbable)"
+        tabindex="0"
         class="ivu-color-picker-saturation-wrapper"
         @keydown.esc="handleEscape"
         @click="$el.focus()"
@@ -70,6 +70,10 @@ export default {
                 this.$el.focus();
             }
         },
+    },
+
+    mounted() {
+        setTimeout(() => this.$el.focus(), 1);
     },
 
     methods: {

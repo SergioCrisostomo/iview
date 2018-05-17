@@ -1,6 +1,6 @@
 <template>
     <div
-        :tabindex="getTabindex(tabbable)"
+        tabindex="0"
         class="ivu-color-picker-alpha"
         @click="$el.focus()"
         @keydown.esc="handleEscape"
@@ -41,10 +41,6 @@ export default {
 
     props: {
         // more props in the mixin
-        onChange: {
-            type: Function,
-            default: undefined,
-        },
     },
 
     data() {
