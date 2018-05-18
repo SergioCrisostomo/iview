@@ -35,14 +35,6 @@ export default {
 
     mixins: [HSAMixin, Prefixes],
 
-    props: {
-        // more props in the mixin
-        focused: {
-            type: Boolean,
-            default: true,
-        },
-    },
-
     data() {
         const normalStep = 0.01;
 
@@ -62,14 +54,6 @@ export default {
         },
         pointerStyle() {
             return {top: `${-(this.value.hsv.v * 100) + 1 + 100}%`, left: `${this.value.hsv.s * 100}%`};
-        },
-    },
-
-    watch: {
-        focused(val) {
-            if (val) {
-                this.$el.focus();
-            }
         },
     },
 

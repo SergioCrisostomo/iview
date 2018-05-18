@@ -6,6 +6,10 @@ export default {
     mixins: [Emitter, handleEscapeMixin],
 
     props: {
+        focused: {
+            type: Boolean,
+            default: false,
+        },
         value: {
             type: Object,
             default: undefined,
@@ -14,6 +18,14 @@ export default {
 
     beforeDestroy() {
         this.unbindEventListeners();
+    },
+
+    watch: {
+        focused(val) {
+            if (val) {
+                this.$el.focus();
+            }
+        },
     },
 
     methods: {

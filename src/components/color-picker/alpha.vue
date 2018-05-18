@@ -40,14 +40,6 @@ export default {
 
     mixins: [HSAMixin, Prefixes],
 
-    props: {
-        // more props in the mixin
-        focused: {
-            type: Boolean,
-            default: false,
-        },
-    },
-
     data() {
         const normalStep = 1;
         const jumpStep = 10;
@@ -68,14 +60,6 @@ export default {
             const finish = toRGBAString({r, g, b, a: 1});
 
             return {background: `linear-gradient(to right, ${start} 0%, ${finish} 100%)`};
-        },
-    },
-
-    watch: {
-        focused(val) {
-            if (val) {
-                this.$el.focus();
-            }
         },
     },
 

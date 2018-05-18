@@ -34,14 +34,6 @@ export default {
 
     mixins: [HASMixin, Prefixes],
 
-    props: {
-        // more props in the mixin
-        focused: {
-            type: Boolean,
-            default: false,
-        },
-    },
-
     data() {
         const normalStep = 1 / 360 * 25;
         const jumpStep = 20 * normalStep;
@@ -54,14 +46,6 @@ export default {
             powerKey: 'shiftKey',
             percent: clamp(this.value.hsl.h * 100 / 360, 0, 100),
         };
-    },
-
-    watch: {
-        focused(val) {
-            if (val) {
-                this.$el.focus();
-            }
-        },
     },
 
     methods: {
