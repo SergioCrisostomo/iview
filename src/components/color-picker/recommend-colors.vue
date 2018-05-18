@@ -67,7 +67,7 @@ export default {
 
     computed: {
         linearIndex() {
-            return this.columns * (this.grid.y - 1) + this.grid.x - 1;
+            return this.getLinearIndex(this.grid);
         },
         currentCircle() {
             return this.$refs[`color-circle-${this.linearIndex}`][0];
@@ -75,20 +75,34 @@ export default {
     },
 
     methods: {
+        getLinearIndex(grid) {
+            return this.columns * (grid.y - 1) + grid.x - 1;
+        },
+        getMaxLimit(axis) {
+            return axis === 'x' ? this.columns : this.rows;
+        },
         handleArrow(e, axis, direction) {
             e.preventDefault();
             e.stopPropagation();
 
             this.blurColor();
 
+            const grid = {...this.grid};
+
             if (e[this.powerKey]) {
                 if (direction < 0) {
-                    this.grid[axis] = 1;
+                    grid[axis] = 1;
                 } else {
-                    this.grid[axis] = axis === 'x' ? this.columns : this.rows;
+                    grid[axis] = this.getMaxLimit(axis);
                 }
             } else {
-                this.grid[axis] += direction;
+                grid[axis] += direction;
+            }
+
+            const index = this.getLinearIndex(grid);
+
+            if (index >= 0 && index < this.list.length) {
+                this.grid[axis] = clamp(grid[axis], 1, this.getMaxLimit(axis));
             }
 
             this.focusColor();
@@ -96,12 +110,7 @@ export default {
         blurColor() {
             this.currentCircle.classList.add('ivu-color-picker-hide');
         },
-        boundsColor(axis, limit) {
-            this.grid[axis] = clamp(this.grid[axis], 1, limit);
-        },
         focusColor() {
-            this.boundsColor('x', this.columns);
-            this.boundsColor('y', this.rows);
             this.currentCircle.classList.remove('ivu-color-picker-hide');
         },
         handleEnter(e) {
