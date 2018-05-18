@@ -1,7 +1,7 @@
 <template>
     <div
+        :class="[prefixCls + '-saturation-wrapper']"
         tabindex="0"
-        class="ivu-color-picker-saturation-wrapper"
         @keydown.esc="handleEscape"
         @click="$el.focus()"
         @keydown.left="handleLeft"
@@ -12,33 +12,34 @@
         <div
             ref="container"
             :style="bgColorStyle"
-            class="ivu-color-picker-saturation"
+            :class="[prefixCls + '-saturation']"
             @mousedown="handleMouseDown">
-            <div class="ivu-color-picker-saturation--white"></div>
-            <div class="ivu-color-picker-saturation--black"></div>
+            <div :class="[prefixCls + '-saturation--white']"></div>
+            <div :class="[prefixCls + '-saturation--black']"></div>
             <div
                 :style="pointerStyle"
-                class="ivu-color-picker-saturation-pointer">
-                <div class="ivu-color-picker-saturation-circle"></div>
+                :class="[prefixCls + '-saturation-pointer']">
+                <div :class="[prefixCls + '-saturation-circle']"></div>
             </div>
         </div>
     </div>
 </template>
 
 <script>
-import hsaMixin from './hsaMixin';
+import HSAMixin from './hsaMixin';
+import Prefixes from './prefixMixin';
 import {clamp, getIncrement} from './utils';
 
 export default {
     name: 'Saturation',
 
-    mixins: [hsaMixin],
+    mixins: [HSAMixin, Prefixes],
 
     props: {
         // more props in the mixin
-        visible: {
+        focused: {
             type: Boolean,
-            required: true,
+            default: true,
         },
     },
 
@@ -65,15 +66,11 @@ export default {
     },
 
     watch: {
-        visible(val) {
+        focused(val) {
             if (val) {
                 this.$el.focus();
             }
         },
-    },
-
-    mounted() {
-        setTimeout(() => this.$el.focus(), 1);
     },
 
     methods: {
@@ -105,11 +102,11 @@ export default {
             this.change(this.value.hsv.h, saturation, bright, this.value.hsv.a);
         },
         handleMouseDown(e) {
-            hsaMixin.methods.handleMouseDown.call(this, e);
+            HSAMixin.methods.handleMouseDown.call(this, e);
             window.addEventListener('mouseup', this.handleChange, false);
         },
         unbindEventListeners(e) {
-            hsaMixin.methods.unbindEventListeners.call(this, e);
+            HSAMixin.methods.unbindEventListeners.call(this, e);
             window.removeEventListener('mouseup', this.handleChange);
         },
     },

@@ -52,24 +52,24 @@
             v-model="color7"
             :hue="false"
             @on-open-change="onOpenChange"></ColorPicker>
+        <ColorPicker
+            v-model="color7"
+            :hue="false"
+            :hide-drop-down="hideDropDown"
+            transfer
+            @on-open-change="onOpenChange"></ColorPicker>
+
         <br><br><br><br>
-        <br><br><br><br>
-        <br><br><br><br>
-        <br><br><br><br>
-        <br><br><br><br>
-        <br><br><br><br>
-        <br><br><br><br>
-        <br><br><br><br>
-        <br><br><br><br>
-        <br><br><br><br>
-        <br><br><br><br>
-        <br><br><br><br>
-        <br><br><br><br>
+        <ColorPicker
+            v-model="color7"
+            disabled></ColorPicker>
     </div>
 </template>
+
 <script>
 export default {
     props: {},
+
     data() {
         return {
             color: 'rgba(12,34,255,.85)',
@@ -120,9 +120,16 @@ export default {
                 '#febd79',
                 '#5d4037',
             ],
+            hideDropDown: false,
         };
     },
+
     computed: {},
+
+    mounted() {
+        setInterval(this.toggleShowHide, 2000);
+    },
+
     methods: {
         setColor() {
             this.color = '#26bc77';
@@ -141,6 +148,9 @@ export default {
         },
         onActiveChange(d) {
             console.log(d);
+        },
+        toggleShowHide() {
+            this.hideDropDown = !this.hideDropDown;
         },
     },
 };

@@ -5,9 +5,20 @@
     &-hide {
        display: none;
     }
+    &-disabled {
+        background-color: @input-disabled-bg;
+        opacity: 1;
+        cursor: @cursor-disabled;
+        color: #ccc;
+    }
     & > div:first-child:hover {
         .ivu-input {
             border-color: @input-hover-border-color;
+        }
+    }
+    & > div:first-child.@{color-picker-prefix-cls}-disabled:hover {
+        .ivu-input {
+            border-color: tint(@input-border-color, 20%);
         }
     }
     & .@{select-dropdown-prefix-cls} {

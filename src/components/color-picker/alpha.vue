@@ -1,7 +1,7 @@
 <template>
     <div
+        :class="[prefixCls + '-alpha']"
         tabindex="0"
-        class="ivu-color-picker-alpha"
         @click="$el.focus()"
         @keydown.esc="handleEscape"
         @keydown.left="handleLeft"
@@ -9,38 +9,43 @@
         @keydown.up="handleUp"
         @keydown.down="handleDown"
     >
-        <div class="ivu-color-picker-alpha-checkboard-wrap">
-            <div class="ivu-color-picker-alpha-checkerboard"></div>
+        <div :class="[prefixCls + '-alpha-checkboard-wrap']">
+            <div :class="[prefixCls + '-alpha-checkerboard']"></div>
         </div>
         <div
             :style="gradientStyle"
-            class="ivu-color-picker-alpha-gradient"></div>
+            :class="[prefixCls + '-alpha-gradient']"></div>
         <div
             ref="container"
-            class="ivu-color-picker-alpha-container"
+            :class="[prefixCls + '-alpha-container']"
             @mousedown="handleMouseDown"
             @touchmove="handleChange"
             @touchstart="handleChange">
             <div
                 :style="{top: 0, left: `${value.a * 100}%`}"
-                class="ivu-color-picker-alpha-pointer">
-                <div class="ivu-color-picker-alpha-picker"></div>
+                :class="[prefixCls + '-alpha-pointer']">
+                <div :class="[prefixCls + '-alpha-picker']"></div>
             </div>
         </div>
     </div>
 </template>
 
 <script>
-import hsaMixin from './hsaMixin';
+import HSAMixin from './hsaMixin';
+import Prefixes from './prefixMixin';
 import {clamp, toRGBAString} from './utils';
 
 export default {
     name: 'Alpha',
 
-    mixins: [hsaMixin],
+    mixins: [HSAMixin, Prefixes],
 
     props: {
         // more props in the mixin
+        focused: {
+            type: Boolean,
+            default: false,
+        },
     },
 
     data() {
@@ -63,6 +68,14 @@ export default {
             const finish = toRGBAString({r, g, b, a: 1});
 
             return {background: `linear-gradient(to right, ${start} 0%, ${finish} 100%)`};
+        },
+    },
+
+    watch: {
+        focused(val) {
+            if (val) {
+                this.$el.focus();
+            }
         },
     },
 

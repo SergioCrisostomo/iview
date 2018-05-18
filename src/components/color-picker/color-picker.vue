@@ -11,10 +11,10 @@
                 :name="name"
                 :value="currentValue"
                 type="hidden">
-            <i class="ivu-icon ivu-icon-arrow-down-b ivu-input-icon ivu-input-icon-normal"></i>
+            <i :class="arrowClasses"></i>
             <div
                 ref="input"
-                :tabindex="0"
+                :tabindex="disabled ? undefined : 0"
                 :class="inputClasses"
                 @keydown.tab="onTab"
                 @keydown.esc="onEscape"
@@ -25,7 +25,7 @@
                     <div
                         v-show="value === '' && !visible"
                         :class="[prefixCls + '-color-empty']">
-                        <i class="ivu-icon ivu-icon-ios-close-empty"></i>
+                        <i :class="[iconPrefixCls, iconPrefixCls + '-ios-close-empty']"></i>
                     </div>
                     <div
                         v-show="value || visible"
@@ -36,22 +36,21 @@
         <transition name="transition-drop">
             <Drop
                 v-transfer-dom
-                v-show="isVisible"
+                v-show="!hideDropDown && visible"
                 ref="drop"
-                :class="{ [prefixCls + '-transfer']: transfer }"
                 :placement="placement"
                 :data-transfer="transfer"
-                class="ivu-transfer-no-max-height"
+                :class="[transferPrefixCls + '-no-max-height', { [prefixCls + '-transfer']: transfer }]"
             >
                 <div
-                    v-if="isVisible"
+                    v-if="true"
                     :class="[prefixCls + '-picker']">
                     <div :class="[prefixCls + '-picker-wrapper']">
                         <div :class="[prefixCls + '-picker-panel']">
                             <Saturation
                                 ref="saturation"
                                 v-model="saturationColors"
-                                :visible="visible"
+                                :focused="visible"
                                 @change="childChange"
                                 @keydown.native.tab="handleFirstTab"
                             ></Saturation>
@@ -121,10 +120,8 @@ import Alpha from './alpha.vue';
 import Locale from '../../mixins/locale';
 import {oneOf} from '../../utils/assist';
 import Emitter from '../../mixins/emitter';
+import Prefixes from './prefixMixin';
 import {changeColor, toRGBAString} from './utils';
-
-const prefixCls = 'ivu-color-picker';
-const inputPrefixCls = 'ivu-input';
 
 export default {
     name: 'ColorPicker',
@@ -133,7 +130,7 @@ export default {
 
     directives: {clickOutside: vClickOutside.directive, TransferDom},
 
-    mixins: [Emitter, Locale],
+    mixins: [Emitter, Locale, Prefixes],
 
     props: {
         value: {
@@ -176,9 +173,9 @@ export default {
             },
             default: 'default',
         },
-        show: {
+        hideDropDown: {
             type: Boolean,
-            default: true,
+            default: false,
         },
         placement: {
             type: String,
@@ -215,7 +212,6 @@ export default {
             val: changeColor(this.value),
             currentValue: this.value,
             dragging: false,
-            prefixCls,
             visible: false,
             recommendedColor: [
                 '#2d8cf0',
@@ -247,8 +243,13 @@ export default {
     },
 
     computed: {
-        isVisible() {
-            return this.show && this.visible;
+        arrowClasses() {
+            return [
+                this.iconPrefixCls,
+                `${this.iconPrefixCls}-arrow-down-b`,
+                `${this.inputPrefixCls}-icon`,
+                `${this.inputPrefixCls}-icon-normal`,
+            ];
         },
         transition() {
             return oneOf(this.placement, ['bottom-start', 'bottom', 'bottom-end']) ? 'slide-up' : 'fade';
@@ -264,28 +265,31 @@ export default {
         },
         classes() {
             return [
-                `${prefixCls}`,
+                `${this.prefixCls}`,
                 {
-                    [`${prefixCls}-transfer`]: this.transfer,
+                    [`${this.prefixCls}-transfer`]: this.transfer,
                 },
             ];
         },
         wrapClasses() {
             return [
-                `${prefixCls}-rel`,
-                `${prefixCls}-${this.size}`,
-                `${inputPrefixCls}-wrapper`,
-                `${inputPrefixCls}-wrapper-${this.size}`,
+                `${this.prefixCls}-rel`,
+                `${this.prefixCls}-${this.size}`,
+                `${this.inputPrefixCls}-wrapper`,
+                `${this.inputPrefixCls}-wrapper-${this.size}`,
+                {
+                    [`${this.prefixCls}-disabled`]: this.disabled,
+                },
             ];
         },
         inputClasses() {
             return [
-                `${prefixCls}-input`,
-                `${inputPrefixCls}`,
-                `${inputPrefixCls}-${this.size}`,
+                `${this.prefixCls}-input`,
+                `${this.inputPrefixCls}`,
+                `${this.inputPrefixCls}-${this.size}`,
                 {
-                    [`${prefixCls}-focused`]: this.visible,
-                    [`${inputPrefixCls}-disabled`]: this.disabled,
+                    [`${this.prefixCls}-focused`]: this.visible,
+                    [`${this.prefixCls}-disabled`]: this.disabled,
                 },
             ];
         },
@@ -293,29 +297,29 @@ export default {
             return {backgroundColor: toRGBAString(this.visible ? this.saturationColors.rgba : tinycolor(this.value).toRgb())};
         },
         formatColor() {
-            const {format, saturationColors: value} = this;
+            const {format, saturationColors} = this;
 
             if (format) {
                 if (format === 'hsl') {
-                    return tinycolor(value.hsl).toHslString();
+                    return tinycolor(saturationColors.hsl).toHslString();
                 }
 
                 if (format === 'hsv') {
-                    return tinycolor(value.hsv).toHsvString();
+                    return tinycolor(saturationColors.hsv).toHsvString();
                 }
 
                 if (format === 'hex') {
-                    return value.hex;
+                    return saturationColors.hex;
                 }
 
                 if (format === 'rgb') {
-                    return toRGBAString(value.rgba);
+                    return toRGBAString(saturationColors.rgba);
                 }
             } else if (this.alpha) {
-                return toRGBAString(value.rgba);
+                return toRGBAString(saturationColors.rgba);
             }
 
-            return value.hex;
+            return saturationColors.hex;
         },
     },
 
@@ -360,6 +364,10 @@ export default {
             this.visible = false;
         },
         toggleVisible() {
+            if (this.disabled) {
+                return;
+            }
+
             this.visible = !this.visible;
             this.$refs.input.focus();
         },

@@ -1,7 +1,7 @@
 <template>
     <div
+        :class="[prefixCls + '-hue']"
         tabindex="0"
-        class="ivu-color-picker-hue"
         @click="$el.focus()"
         @keydown.esc="handleEscape"
         @keydown.left="handleLeft"
@@ -11,30 +11,35 @@
     >
         <div
             ref="container"
-            class="ivu-color-picker-hue-container"
+            :class="[prefixCls + '-hue-container']"
             @mousedown="handleMouseDown"
             @touchmove="handleChange"
             @touchstart="handleChange">
             <div
                 :style="{top: 0, left: `${percent}%`}"
-                class="ivu-color-picker-hue-pointer">
-                <div class="ivu-color-picker-hue-picker"></div>
+                :class="[prefixCls + '-hue-pointer']">
+                <div :class="[prefixCls + '-hue-picker']"></div>
             </div>
         </div>
     </div>
 </template>
 
 <script>
-import hsaMixin from './hsaMixin';
+import HASMixin from './hsaMixin';
+import Prefixes from './prefixMixin';
 import {clamp} from './utils';
 
 export default {
     name: 'Hue',
 
-    mixins: [hsaMixin],
+    mixins: [HASMixin, Prefixes],
 
     props: {
         // more props in the mixin
+        focused: {
+            type: Boolean,
+            default: false,
+        },
     },
 
     data() {
@@ -51,7 +56,13 @@ export default {
         };
     },
 
-    watch: {},
+    watch: {
+        focused(val) {
+            if (val) {
+                this.$el.focus();
+            }
+        },
+    },
 
     methods: {
         change(percent) {

@@ -3,8 +3,9 @@ import {oneOf} from '../../utils/assist';
 
 function setAlpha(data, alpha) {
     const color = tinycolor(data);
+    const {_a} = color;
 
-    if (color._a === undefined || color._a === null) {
+    if (_a === undefined || _a === null) {
         color.setAlpha(alpha || 1);
     }
 

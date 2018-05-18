@@ -15,15 +15,15 @@
         <template v-for="(item, index) in list">
             <div
                 :key="item + ':' + index"
-                class="ivu-color-picker-picker-colors-wrapper">
+                :class="[prefixCls + '-picker-colors-wrapper']">
                 <div :data-color-id="index">
                     <div
                         :style="{background: item}"
-                        class="ivu-color-picker-picker-colors-wrapper-color"
+                        :class="[prefixCls + '-picker-colors-wrapper-color']"
                     ></div>
                     <div
                         :ref="'color-circle-' + index"
-                        class="ivu-color-picker-picker-colors-wrapper-circle ivu-color-picker-hide"></div>
+                        :class="[prefixCls + '-picker-colors-wrapper-circle', hideClass]"></div>
                 </div>
             </div>
             <br v-if="lineBreak(list, index)">
@@ -33,13 +33,14 @@
 
 <script>
 import Emitter from '../../mixins/emitter';
-import handleEscapeMixin from './handleEscapeMixin';
+import HandleEscapeMixin from './handleEscapeMixin';
+import Prefixes from './prefixMixin';
 import {clamp} from './utils';
 
 export default {
     name: 'RecommendedColors',
 
-    mixins: [Emitter, handleEscapeMixin],
+    mixins: [Emitter, HandleEscapeMixin, Prefixes],
 
     props: {
         list: {
@@ -66,6 +67,9 @@ export default {
     },
 
     computed: {
+        hideClass() {
+            return `${this.prefixCls}-hide`;
+        },
         linearIndex() {
             return this.getLinearIndex(this.grid);
         },
@@ -108,10 +112,10 @@ export default {
             this.focusColor();
         },
         blurColor() {
-            this.currentCircle.classList.add('ivu-color-picker-hide');
+            this.currentCircle.classList.add(this.hideClass);
         },
         focusColor() {
-            this.currentCircle.classList.remove('ivu-color-picker-hide');
+            this.currentCircle.classList.remove(this.hideClass);
         },
         handleEnter(e) {
             this.handleClick(e, this.currentCircle);
