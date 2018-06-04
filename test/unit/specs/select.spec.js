@@ -331,9 +331,14 @@ describe('Select.vue', () => {
           })
           .then(() => {
               expect(vm.modelB).to.equal(options[2].value);
-              expect(JSON.stringify(onChangeValueB)).to.equal(JSON.stringify(options[2]));
+              expect(onChangeValueB.value).to.equal(options[2].value);
+              expect(onChangeValueB.label).to.equal(options[2].label);
               done();
-          });
+          })
+              .catch(err => {
+                  console.log(err);
+                  done(err);
+              });
       });
   });
 

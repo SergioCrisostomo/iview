@@ -31,7 +31,7 @@
                 <select-head
                     :filterable="filterable"
                     :multiple="multiple"
-                    :values="values"
+                    :values="selectedOptions"
                     :clearable="canBeCleared"
                     :disabled="disabled"
                     :remote="remote"
@@ -317,11 +317,17 @@
                 const {loading, remote, selectOptions} = this;
                 return selectOptions && selectOptions.length === 0 && (!remote || (remote && !loading));
             },
+            selectedOptions(){
+                return this.flatOptions.map(({componentOptions}) => {
+                    return componentOptions.propsData;
+                }).filter(({selected}) => selected);
+            },
             publicValue(){
+                const values = this.selectedOptions;
                 if (this.labelInValue){
-                    return this.multiple ? this.values : this.values[0];
+                    return this.multiple ? values : values[0];
                 } else {
-                    return this.multiple ? this.values.map(option => option.value) : (this.values[0] || {}).value;
+                    return this.multiple ? values.map(option => option.value) : (values[0] || {}).value;
                 }
             },
             canBeCleared(){
@@ -334,7 +340,9 @@
                 const slotOptions = (this.slotOptions || []);
                 let optionCounter = -1;
                 const currentIndex = this.focusIndex;
-                const selectedValues = this.values.filter(Boolean).map(({value}) => value);
+                const selectedValues = this.values.filter(Boolean).map(
+                    option => typeof option === 'object' ? option.value : option
+                );
                 if (this.autoComplete) {
                     const copyChildren = (node, fn) => {
                         return {
@@ -433,11 +441,13 @@
             processOption(option, values, isFocused){
                 if (!option.componentOptions) return option;
                 const optionValue = option.componentOptions.propsData.value;
+                const optionLabel = getOptionLabel(option);
                 const disabled = option.componentOptions.propsData.disabled;
                 const isSelected = values.includes(optionValue);
 
                 const propsData = {
                     ...option.componentOptions.propsData,
+                    label: optionLabel,
                     selected: isSelected,
                     isFocused: isFocused,
                     disabled: typeof disabled === 'undefined' ? false : disabled !== false,
@@ -636,11 +646,13 @@
         },
         watch: {
             value(value){
-                const {getInitialValue, getOptionData, publicValue} = this;
+                const {getInitialValue, publicValue} = this;
 
                 if (value === '') this.values = [];
                 else if (JSON.stringify(value) !== JSON.stringify(publicValue)) {
-                    this.$nextTick(() => this.values = getInitialValue().map(getOptionData).filter(Boolean));
+                    this.$nextTick(() => {
+                        this.values = getInitialValue();
+                    });
                 }
             },
             values(now, before){
@@ -650,7 +662,7 @@
                 const vModelValue = (this.publicValue && this.labelInValue) ?
                     (this.multiple ? this.publicValue.map(({value}) => value) : this.publicValue.value) :
                     this.publicValue;
-                const shouldEmitInput = newValue !== oldValue && vModelValue !== this.value;
+                const shouldEmitInput = newValue !== oldValue && vModelValue !== this.value && this.publicValue;
                 if (shouldEmitInput) {
                     this.$emit('input', vModelValue); // to update v-model
                     this.$emit('on-change', this.publicValue);
